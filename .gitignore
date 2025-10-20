@@ -5,6 +5,7 @@ __pycache__/
 
 # VSCode settings
 .vscode/
+log/
 
 # OS files
 .DS_Store

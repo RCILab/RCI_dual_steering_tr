@@ -1,0 +1,12 @@
+tr_dual_steering:
+  ros__parameters:
+    wheel_radius: 0.1
+    publish_rate_hz: 50.0
+    cmd_vel_topic: "/cmd_vel"
+    traj_topic: "/joint_trajectory"
+
+    module_names:  ["lf", "rr"]
+    steer_joints:  ["lf_steer_joint", "rr_steer_joint"]
+    drive_joints:  ["lf_drive_joint", "rr_drive_joint"]
+    module_x:      [ 0.46,  -0.46 ]    # L=0.92 -> +/- L/2
+    module_y:      [ 0.30,  -0.30 ]    # B=0.60 -> +/- B/2
