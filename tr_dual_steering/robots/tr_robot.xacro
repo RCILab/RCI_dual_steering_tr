@@ -1,0 +1,79 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="tr_robot"
+               params="yaml_path">
+
+    <xacro:include filename="$(find tr_dual_steering)/robots/xacros/dual_steering_robot_body.xacro"/>
+    <xacro:include filename="$(find tr_dual_steering)/robots/xacros/qd_wheel.xacro"/>
+    <xacro:include filename="$(find tr_dual_steering)/robots/xacros/caster_wheel.xacro"/>
+
+    <xacro:property name="cfg_name" value="${xacro.load_yaml(yaml_path)}"/>
+    <xacro:property name="p" value="${cfg_name['tr_dual_steering']['ros__parameters']}"/>
+
+    <xacro:property name="wheel_type" value="${p['wheel_type']}"/>
+    <xacro:property name="front_name"    value="${p['module_names'][0]}"/>
+    <xacro:property name="rear_name"    value="${p['module_names'][1]}"/>
+    <xacro:property name="L_half" value="${(p['module_x'][0] - p['module_x'][1])/2}"/>
+    <xacro:property name="B_half" value="${(p['module_y'][0] - p['module_y'][1])/2}"/>
+    <xacro:property name="qd_height" value="${0.12 + 0.025}"/>
+    <xacro:property name="caster_height" value="${0.12 + 0.11}"/>
+    <xacro:property name="caster_b_half" value="${p['caster_b_half']}"/>
+
+    <!-- base -->
+    <link name="base_link" />
+    <xacro:dual_steering_robot_base 
+      name="base_footprint" 
+      parent="base_link">
+      <origin xyz="0 0 0" rpy="0 0 0" />
+    </xacro:dual_steering_robot_base>
+
+    <!-- front qd wheel -->
+    <xacro:qd_wheel_160
+      name="robot_qd_wheel_${front_name}"
+      parent="base_footprint">
+      <origin xyz="${L_half} ${-B_half} ${-qd_height}" rpy="0 0 0" />
+    </xacro:qd_wheel_160>
+
+    <!-- rear qd wheel -->
+    <xacro:qd_wheel_160 
+      name="robot_qd_wheel_${rear_name}"
+      parent="base_footprint">
+      <origin xyz="${-L_half} ${B_half} ${-qd_height}" rpy="0 0 0" />
+    </xacro:qd_wheel_160>
+
+    <!-- front left caster wheel -->
+    <xacro:caster_wheel_75 
+      name="robot_caster_wheel_front_left"
+      parent="base_footprint">
+      <origin xyz="${L_half} ${caster_b_half} ${-caster_height}" rpy="0 0 0" />
+    </xacro:caster_wheel_75>
+
+    <!-- rear right caster wheel -->
+    <xacro:caster_wheel_75
+      name="robot_caster_wheel_rear_right"
+      parent="base_footprint">
+      <origin xyz="${-L_half} ${-caster_b_half} ${-caster_height}" rpy="0 0 0"/>
+    </xacro:caster_wheel_75>
+
+
+    <!-- caster wheel for aligned type -->
+    <xacro:if value="${wheel_type == 'aligned'}">
+      <!-- front right caster wheel -->
+      <xacro:caster_wheel_75 
+        name="robot_caster_wheel_front_right"
+        parent="base_footprint">
+        <origin xyz="${L_half} ${-caster_b_half}  ${-caster_height}" rpy="0 0 0" />
+      </xacro:caster_wheel_75>
+
+      <!-- rear left caster wheel -->
+      <xacro:caster_wheel_75
+        name="robot_caster_wheel_rear_left"
+        parent="base_footprint">
+        <origin xyz="${-L_half} ${caster_b_half}  ${-caster_height}" rpy="0 0 0" />
+      </xacro:caster_wheel_75>
+    </xacro:if>
+
+  </xacro:macro>
+
+</robot>

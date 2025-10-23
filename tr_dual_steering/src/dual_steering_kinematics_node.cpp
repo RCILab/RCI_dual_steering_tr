@@ -21,13 +21,12 @@ public:
     declare_parameter<std::string>("traj_topic", params_.traj_topic);
 
     // 모듈(바퀴) 정의 — 배열로 일반화
-    // 예시 기본값: 2모듈(전/후), L=0.87 -> x=[+0.435,-0.435], y=[0,0]
+    // 예시 기본값: 2모듈(전/후), L=0.92 -> x=[+0.46,-0.46], y=[0,0]
     declare_parameter<std::vector<std::string>>("module_names", {"front","rear"});
     declare_parameter<std::vector<std::string>>("steer_joints", {"front_steer_joint","rear_steer_joint"});
     declare_parameter<std::vector<std::string>>("drive_joints", {"front_drive_joint","rear_drive_joint"});
-    declare_parameter<std::vector<double>>("module_x", {+0.435, -0.435});
+    declare_parameter<std::vector<double>>("module_x", {+0.46, -0.46});
     declare_parameter<std::vector<double>>("module_y", {0.0, 0.0});
-
     // 로드
     get_parameter("wheel_radius", params_.wheel_radius);
     get_parameter("publish_rate_hz", params_.publish_rate_hz);
@@ -78,13 +77,20 @@ private:
     if (n < names.size() || n < steer_js.size() || n < drive_js.size() || n < xs.size() || n < ys.size()) {
       RCLCPP_WARN(get_logger(), "Parameter array sizes differ; using first %zu entries.", n);
     }
+
+    auto add_prefix = [&](const std::string& base)->std::string {
+      // (선택) 이미 접두어가 붙어 있으면 중복 방지
+      const std::string prefix = "robot_qd_wheel_";
+      return prefix + base;                                  // 아니면 접두어 추가
+    };
+
     modules_.clear();
     modules_.reserve(n);
     for (size_t i = 0; i < n; ++i) {
       ModuleSpec m;
       m.name = names[i];
-      m.steer_joint = steer_js[i];
-      m.drive_joint = drive_js[i];
+      m.steer_joint = add_prefix(steer_js[i]);
+      m.drive_joint = add_prefix(drive_js[i]);
       m.x = xs[i];
       m.y = ys[i];
       modules_.push_back(m);

@@ -1,0 +1,13 @@
+<?xml version="1.0" ?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="tr">
+  <xacro:include filename="$(find tr_dual_steering)/robots/tr_robot.xacro"/>
+
+  <xacro:arg name="yaml_path" default="$(find tr_dual_steering)/config/aligned.yaml"/>
+
+  <!-- tr robot -->
+  <xacro:tr_robot
+   yaml_path="$(arg yaml_path)">
+  </xacro:tr_robot>
+
+</robot>

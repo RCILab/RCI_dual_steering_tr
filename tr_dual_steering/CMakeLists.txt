@@ -43,6 +43,9 @@ install(DIRECTORY include/
   DESTINATION include/
 )
 install(DIRECTORY
+  world
+  models
+  robots
   config
   launch
   DESTINATION share/${PROJECT_NAME}
