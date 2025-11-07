@@ -1,6 +1,6 @@
 tr_dual_steering:
   ros__parameters:
-    wheel_radius: 0.2
+    wheel_diameter: 0.4
     publish_rate_hz: 50.0
     cmd_vel_topic: "/cmd_vel"
     traj_topic: "/joint_trajectory"

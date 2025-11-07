@@ -15,7 +15,7 @@ class DualSteeringKinematicsNode : public rclcpp::Node {
 public:
   DualSteeringKinematicsNode() : Node("dual_steering_kinematics_node") {
     // 기본 파라미터
-    declare_parameter<double>("wheel_radius", params_.wheel_radius);
+    declare_parameter<double>("wheel_diameter", params_.wheel_diameter);
     declare_parameter<double>("publish_rate_hz", params_.publish_rate_hz);
     declare_parameter<std::string>("cmd_vel_topic", params_.cmd_vel_topic);
     declare_parameter<std::string>("traj_topic", params_.traj_topic);
@@ -28,7 +28,7 @@ public:
     declare_parameter<std::vector<double>>("module_x", {+0.46, -0.46});
     declare_parameter<std::vector<double>>("module_y", {0.0, 0.0});
     // 로드
-    get_parameter("wheel_radius", params_.wheel_radius);
+    get_parameter("wheel_diameter", params_.wheel_diameter);
     get_parameter("publish_rate_hz", params_.publish_rate_hz);
     get_parameter("cmd_vel_topic", params_.cmd_vel_topic);
     get_parameter("traj_topic", params_.traj_topic);
@@ -42,6 +42,8 @@ public:
     get_parameter("module_y", ys);
 
     build_modules_from_arrays(names, steer_js, drive_js, xs, ys);
+
+
 
     // I/O
     sub_ = create_subscription<geometry_msgs::msg::Twist>(
@@ -59,8 +61,8 @@ public:
         std::bind(&DualSteeringKinematicsNode::on_timer, this));
 
     RCLCPP_INFO(get_logger(),
-      "tr_dual_steering generic node started. modules=%zu, wheel_radius=%.3f",
-      modules_.size(), params_.wheel_radius);
+      "tr_dual_steering generic node started. modules=%zu, wheel_diameter=%.3f",
+      modules_.size(), params_.wheel_diameter);
   }
 
 private:
@@ -141,8 +143,8 @@ private:
       m.steer_angle = theta;
 
       // 바퀴 각속도(rad/s)로 변환 후 적분
-      const double wheel_w = (params_.wheel_radius > 1e-9)
-                            ? (speed_mps / params_.wheel_radius) : 0.0;
+      const double wheel_w = (params_.wheel_diameter > 1e-9)
+                            ? (speed_mps / (0.5 * params_.wheel_diameter)) : 0.0;
       m.drive_pos += wheel_w * dt;
 
       steer_positions.push_back(m.steer_angle);

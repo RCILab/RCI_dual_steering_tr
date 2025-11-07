@@ -15,7 +15,7 @@ struct ModuleSpec {
 };
 
 struct Params {
-  double wheel_radius{0.1};        // [m]
+  double wheel_diameter{0.1};        // [m]
   double publish_rate_hz{50.0};    // [Hz]
   std::string cmd_vel_topic{"/cmd_vel"};
   std::string traj_topic{"/joint_trajectory"};
