@@ -2,24 +2,24 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="dual_steering_robot">
 
   <xacro:macro name="qd_wheel_160" params="name parent *origin">
-   <joint name="${name}_steer_joint" type="revolute">
+   <joint name="${name}_steer_joint" type="continuous">
     <xacro:insert_block name="origin" />
-    <axis xyz="0 0 -1" />
-    <dynamics damping="1.0" friction="1" />
-    <limit effort="1000.0" lower="-1e+16" upper="1e+16" velocity="1.02"/>
+    <axis xyz="0 0 1" />
+    <dynamics damping="0.2" />
+    <!-- <limit effort="1000.0" lower="-1.57" upper="1.57" velocity="1.02"/> -->
     <parent link="${parent}" />
     <child link="${name}_steer_link" />
    </joint>
 
-   <link name="${name}_steer_link" type="wheel">
+   <link name="${name}_steer_link">
     <inertial>
-      <mass value="2.2" />
+      <mass value="1" />
       <origin xyz="0 0 0" rpy="0 0 0" />
         <inertia  ixx="0.01" ixy="0.0" ixz="0.0"
                   iyy="0.01" iyz="0.0" 
                   izz="0.01" />
     </inertial>
-    
+
     <visual>
      <origin xyz="0 0 0" rpy="0 0 0"/>
      <geometry>
@@ -28,56 +28,45 @@
     </visual>
 
     <collision>
-     <origin xyz="0 0 0" rpy="0 1.571 1.571" />
+     <origin xyz="0 0 0" rpy="0 0 0" />
      <geometry>
-       <!-- <cylinder radius="0.16" length="0.05"/> -->
-      <sphere radius="0.16" />
+        <cylinder radius="0.16" length="0.05"/> 
      </geometry>
     </collision>
    </link>
 
-   <joint name="${name}_drive_joint" type="revolute">
-    <origin xyz="0 0 -0.185" rpy="1.571 0 0" />
+   <joint name="${name}_drive_joint" type="continuous">
+    <origin xyz="0 0 -0.185" rpy="-1.57 0 0" />
     <axis xyz="0 0 1" />
-    <joint_properties damping="100" friction="1000" />
-        <limit effort="1000.0" lower="-1e+16" upper="1e+16" velocity="1.02"/>
-    <joint_properties damping="1.0" friction="1" />
+    <dynamics damping="0.01" />
+    <!-- <limit effort="1000.0" lower="-3.14" upper="3.14" velocity="1.02"/> -->
     <parent link="${name}_steer_link" />
     <child link="${name}_drive_link" />
    </joint>
 
-   <link name="${name}_drive_link" type="wheel">
+   <link name="${name}_drive_link">
     <inertial>
-      <mass value="2.2" />
+      <mass value="8.0" />
       <origin xyz="0 0 0" rpy="0 0 0" />
         <inertia  ixx="0.01" ixy="0.0" ixz="0.0"
                   iyy="0.01" iyz="0.0" 
                   izz="0.01" />
     </inertial>
-    
+
     <visual>
      <origin xyz="0 0 0" rpy="0 0 0"/>
      <geometry>
-        <cylinder radius="0.16" length="0.05"/> 
+        <cylinder radius="0.16" length="0.05"/>
      </geometry>
     </visual>
 
     <collision>
-     <origin xyz="0 0 0" rpy="0 1.571 1.571" />
+     <origin xyz="0 0 0" rpy="0 0 0" />
      <geometry>
-       <!-- <cylinder radius="0.16" length="0.05"/> -->
-      <sphere radius="0.16" />
+        <cylinder radius="0.16" length="0.05"/>
      </geometry>
     </collision>
    </link>
-   
-<gazebo reference="${name}_link">
-      <!-- <kp> 10000 </kp> -->
-      <!-- <fdir1>0 1 0</fdir1> -->
-      <!-- <slip1> 0.1 </slip1> -->
-      <mu1>0.0001</mu1>
-      <mu2>0.0001</mu2>
-</gazebo>
+
   </xacro:macro>
-  
 </robot>

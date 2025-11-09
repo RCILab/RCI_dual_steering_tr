@@ -21,38 +21,38 @@
     <xacro:property name="caster_b_half" value="${p['caster_b_half']}"/>
 
     <!-- base -->
-    <link name="base_link" />
+    <link name="base_footprint" />
     <xacro:dual_steering_robot_base 
-      name="base_footprint" 
-      parent="base_link">
+      name="base_link" 
+      parent="base_footprint">
       <origin xyz="0 0 0" rpy="0 0 0" />
     </xacro:dual_steering_robot_base>
 
     <!-- front qd wheel -->
     <xacro:qd_wheel_160
-      name="robot_qd_wheel_${front_name}"
-      parent="base_footprint">
+      name="${front_name}"
+      parent="base_link">
       <origin xyz="${L_half} ${-B_half} ${-qd_height}" rpy="0 0 0" />
     </xacro:qd_wheel_160>
 
     <!-- rear qd wheel -->
     <xacro:qd_wheel_160 
-      name="robot_qd_wheel_${rear_name}"
-      parent="base_footprint">
+      name="${rear_name}"
+      parent="base_link">
       <origin xyz="${-L_half} ${B_half} ${-qd_height}" rpy="0 0 0" />
     </xacro:qd_wheel_160>
 
     <!-- front left caster wheel -->
     <xacro:caster_wheel_75 
       name="robot_caster_wheel_front_left"
-      parent="base_footprint">
+      parent="base_link">
       <origin xyz="${L_half} ${caster_b_half} ${-caster_height}" rpy="0 0 0" />
     </xacro:caster_wheel_75>
 
     <!-- rear right caster wheel -->
     <xacro:caster_wheel_75
       name="robot_caster_wheel_rear_right"
-      parent="base_footprint">
+      parent="base_link">
       <origin xyz="${-L_half} ${-caster_b_half} ${-caster_height}" rpy="0 0 0"/>
     </xacro:caster_wheel_75>
 
@@ -62,17 +62,19 @@
       <!-- front right caster wheel -->
       <xacro:caster_wheel_75 
         name="robot_caster_wheel_front_right"
-        parent="base_footprint">
+        parent="base_link">
         <origin xyz="${L_half} ${-caster_b_half}  ${-caster_height}" rpy="0 0 0" />
       </xacro:caster_wheel_75>
 
       <!-- rear left caster wheel -->
       <xacro:caster_wheel_75
         name="robot_caster_wheel_rear_left"
-        parent="base_footprint">
+        parent="base_link">
         <origin xyz="${-L_half} ${caster_b_half}  ${-caster_height}" rpy="0 0 0" />
       </xacro:caster_wheel_75>
     </xacro:if>
+    
+    <xacro:include filename="$(find tr_dual_steering)/robots/xacros/gazebo.urdf.xacro"/>
 
   </xacro:macro>
 

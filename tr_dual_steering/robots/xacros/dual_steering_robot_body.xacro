@@ -2,36 +2,32 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="dual_steering_robot">
 
   <xacro:macro name="dual_steering_robot_base" params="name parent *origin">
-    <joint name="${name}_joint" type="fixed">
-      <xacro:insert_block name="origin" />
-      <axis xyz="0 0 -1" />
-      <!-- <limit effort="1000.0" lower="-1e+16" upper="1e+16" velocity="3.5"/> -->
-      <joint_properties damping="1" friction="1" />
-      <parent link="${parent}" />
-      <child link="${name}" />
-   </joint>
     <link name="${name}">
       <inertial>
-        <mass value="64"/>
-        <origin xyz="0 0.0 0.0" />
+        <mass value="55"/>
+        <origin xyz="0.0 0.0 0.0" />
          <inertia ixx="2.8" ixy="0.0" ixz="0.0"
-                 iyy="2.8" iyz="0.0" 
-                 izz="2.8" />
+                  iyy="2.8" iyz="0.0" 
+                  izz="2.8" />
       </inertial>
       <visual>
-        <origin xyz="0. 0. 0" rpy="0 0 0" />
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
         <geometry>
             <box size="1.4 1.0 0.24"/>
         </geometry>
       </visual>
       <collision>
-        <origin xyz="0. 0. 0.0" rpy="-1.571 0 1.571" />
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
         <geometry>
             <box size="1.0 0.80 0.24"/>
         </geometry>
       </collision>
     </link>
-
+    <joint name="${name}_joint" type="fixed">
+      <xacro:insert_block name="origin" />
+      <parent link="${parent}" />
+      <child link="${name}" />
+   </joint>
   </xacro:macro>
   
 </robot>

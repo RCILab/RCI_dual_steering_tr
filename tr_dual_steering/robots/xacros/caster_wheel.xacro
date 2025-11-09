@@ -1,20 +1,19 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="dual_steering_robot">
 
-  <xacro:macro name="caster_wheel_75" params="name parent *origin">
-   <joint name="${name}_mount_joint" type="revolute">
+  <xacro:macro name="caster_wheel_75"
+               params="name parent *origin
+                       frictionless:=true mu1:=0.0 mu2:=0.0 slip1:=1.0 slip2:=1.0">
+   <joint name="${name}_mount_joint" type="continuous">
     <xacro:insert_block name="origin" />
-    <axis xyz="0 0 -1" />
-    <joint_properties damping="100" friction="1000" />
-        <limit effort="1000.0" lower="-1e+16" upper="1e+16" velocity="1.02"/>
-    <joint_properties damping="1.0" friction="1" />
-    <dynamics damping="1.0" friction="1" />
-    <limit effort="1000.0" lower="-1e+16" upper="1e+16" velocity="1.02"/>
+    <axis xyz="0 0 1" />
+    <dynamics damping="0.2" />
+    <!-- <limit effort="1000.0" lower="-3.14" upper="3.14" velocity="1.02"/> -->
     <parent link="${parent}" />
     <child link="${name}_mount_link" />
    </joint>
 
-   <link name="${name}_mount_link" type="wheel">
+   <link name="${name}_mount_link">
     <inertial>
       <mass value="2.2" />
       <origin xyz="0 0 0" rpy="0 0 0" />
@@ -31,29 +30,25 @@
     </visual>
 
     <collision>
-     <origin xyz="0 0 0" rpy="0 1.57 1.57" />
+     <origin xyz="0 0 0" rpy="0 0 0" />
      <geometry>
-       <!-- <cylinder radius="0.075" length="0.046"/> -->
-      <sphere radius="0.075" />
+        <cylinder radius="0.075" length="0.22"/>
      </geometry>
     </collision>
    </link>
 
-   <joint name="${name}_joint" type="revolute">
-    <origin xyz="0 0 -0.185" rpy="1.571 0 0" />
+   <joint name="${name}_joint" type="continuous">
+    <origin xyz="0 0 -0.185" rpy="-1.57 0 0" />
     <axis xyz="0 0 1" />
-    <joint_properties damping="100" friction="1000" />
-        <limit effort="1000.0" lower="-1e+16" upper="1e+16" velocity="1.02"/>
-    <joint_properties damping="1.0" friction="1" />
-    <!-- <dynamics damping="1.0" friction="1" />
-    <limit effort="1000.0" lower="-1e+16" upper="1e+16" velocity="1.02"/> -->
+    <dynamics damping="0.01" />
+    <!-- <limit effort="1000.0" lower="-3.14" upper="3.14" velocity="1.02"/> -->
     <parent link="${name}_mount_link" />
     <child link="${name}_link" />
    </joint>
 
-   <link name="${name}_link" type="wheel">
+   <link name="${name}_link">
     <inertial>
-      <mass value="2.2" />
+      <mass value="8" />
       <origin xyz="0 0 0" rpy="0 0 0" />
         <inertia  ixx="0.01" ixy="0.0" ixz="0.0"
                   iyy="0.01" iyz="0.0" 
@@ -68,21 +63,21 @@
     </visual>
 
     <collision>
-     <origin xyz="0 0 0" rpy="0 1.57 1.57" />
+     <origin xyz="0 0 0" rpy="0 0 0" />
      <geometry>
-       <!-- <cylinder radius="0.075" length="0.046"/> -->
-      <sphere radius="0.075" />
+        <cylinder radius="0.075" length="0.046"/> 
      </geometry>
     </collision>
    </link>
-   
-<gazebo reference="${name}_link">
-      <!-- <kp> 10000 </kp> -->
-      <!-- <fdir1>0 1 0</fdir1> -->
-      <!-- <slip1> 0.1 </slip1> -->
-      <mu1>0.0001</mu1>
-      <mu2>0.0001</mu2>
-</gazebo>
+   <xacro:if value="${frictionless}">
+      <gazebo reference="${name}_link">
+         <mu1>${mu1}</mu1><mu2>${mu2}</mu2>
+         <slip1>${slip1}</slip1><slip2>${slip2}</slip2>
+      </gazebo>
+      <gazebo reference="${name}_mount_link">
+         <mu1>${mu1}</mu1><mu2>${mu2}</mu2>
+         <slip1>${slip1}</slip1><slip2>${slip2}</slip2>
+      </gazebo>
+   </xacro:if>
   </xacro:macro>
-  
 </robot>

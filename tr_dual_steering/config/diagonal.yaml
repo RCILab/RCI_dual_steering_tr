@@ -1,14 +1,14 @@
 tr_dual_steering:
   ros__parameters:
     wheel_diameter: 0.4
-    publish_rate_hz: 50.0
+    publish_rate_hz: 1000.0
     cmd_vel_topic: "/cmd_vel"
-    traj_topic: "/joint_trajectory"
-
-    module_names:  ["front_left", "rear_right"]
-    steer_joints:  ["front_left_steer_joint", "rear_right_steer_joint"]
-    drive_joints:  ["front_left_drive_joint", "rear_right_drive_joint"]
-    module_x:      [ 0.46,  -0.46 ]    # L=0.92 -> +/- L/2
-    module_y:      [ 0.30,  -0.30 ]    # B=0.60 -> +/- B/2
-    caster_b_half: 0.3
+    steer_traj_topic: "/joint_trajectory_controller/joint_trajectory"
+    drive_cmd_topic: "/velocity_controller/commands"
     wheel_type: 'diagonal'
+    module_names:  ["front", "rear"]
+    steer_joints:  ["front_steer_joint", "rear_steer_joint"]
+    drive_joints:  ["front_drive_joint", "rear_drive_joint"]
+    module_x:      [0.46,  -0.46]    # L=0.92 -> +/- L/2
+    module_y:      [0.30,  -0.30]    # B=0.60 -> +/- B/2
+    caster_b_half: 0.3
