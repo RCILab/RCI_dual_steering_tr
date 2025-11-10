@@ -66,12 +66,12 @@ void SteerDrive2WKinematics::execForwKin(const std::shared_ptr<const sensor_msgs
 
     const double numer = std::sin(M_PI/2.0 - th_f + alpha) * l_f;
     const double denom = std::sin(th_f - beta);
-
-    if (std::fabs(numer) < NUM_EPS) {
-      w = -v_f / l_f;
-    }
-    else if (std::fabs(denom) < DEN_EPS) {
+    
+    if ((std::fabs(denom) < DEN_EPS) && (v_f * v_r > 0.0)) {
       w = 0.0;
+    }
+    else if ((std::fabs(numer) < NUM_EPS) && (v_f * v_r < 0.0)){
+      w = -v_f / l_f;
     }
     else {
       const double R = numer / denom;
@@ -129,7 +129,7 @@ void SteerDrive2WKinematics::execInvKin(
   steer_traj.points.resize(1);
   auto &pt = steer_traj.points[0];
   pt.positions = {th_f, th_r};                // pos only
-  pt.time_from_start = rclcpp::Duration::from_seconds(0.5); // 20 ms (예시)
+  pt.time_from_start = rclcpp::Duration::from_seconds(0.02); // 20 ms (예시)
 
   drive_cmd = std_msgs::msg::Float64MultiArray{};
   drive_cmd.data = {v_f, v_r};
