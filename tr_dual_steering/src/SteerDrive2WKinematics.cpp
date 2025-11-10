@@ -8,67 +8,74 @@
 #define _USE_MATH_DEFINES
 
 inline double fold_half_pi_and_flip(double theta, double& speed) {
-    double wrapped = std::remainder(theta, M_PI);
+    // r: theta를 π로 접은 나머지 ([-π/2, +π/2]에 옴)
+    // k: 접힐 때 사용된 π의 "정수 배수" 정보(부호/하위 비트)
+    int k = 0;
+    double r = std::remquo(theta, M_PI, &k); // C++ 표준: remainder와 동일한 나머지 + 몫 비트 제공
 
-    if (std::cos(theta - wrapped) < 0.0) {
+    // π의 홀수배만큼 접혔다면 구동 방향을 반전
+    if (k & 1) speed = -speed;
+
+    const double HALF_PI = 0.5 * M_PI;
+
+    // 반개구간 보장: [+π/2]가 나오면 [-π/2]로 보내고 속도 부호 한 번 더 반전
+    if (r >= HALF_PI) {
+        r -= M_PI;       // +π/2 → -π/2
+        speed = -speed;  // π를 한 번 더 접었으므로 부호 보정
+    }
+
+    // 수치적 안전장치(희박하지만 부동소수 오차로 -π/2를 살짝 벗어나면 되돌림)
+    if (r < -HALF_PI) {
+        r += M_PI;
         speed = -speed;
     }
-    return wrapped;
+    return r; // 항상 [-π/2, π/2)
 }
 
 void SteerDrive2WKinematics::execForwKin(const std::shared_ptr<const sensor_msgs::msg::JointState>& js,
                                          nav_msgs::msg::Odometry& odom)
 {
-    const double v_f = js->velocity[0] * (diam * 0.5);
-    const double v_r = js->velocity[1] * (diam * 0.5);
-    const double th_f = js->position[2];
-    const double th_r = js->position[3];
+    auto index_of = [&](const std::string& name)->int {
+      for (size_t i = 0; i < js->name.size(); ++i)
+        if (js->name[i] == name) return static_cast<int>(i);
+      return -1;
+    };
+    const int i_fd = index_of(drive_joints[0]); // front drive
+    const int i_rd = index_of(drive_joints[1]); // rear  drive
+    const int i_fs = index_of(steer_joints[0]); // front steer
+    const int i_rs = index_of(steer_joints[1]); // rear  steer
 
-    const double v_cx = v_f * std::cos(th_f) + v_r * std::cos(th_r);
-    const double v_cy = v_f * std::sin(th_f) + v_r * std::sin(th_r);
+    if (i_fd < 0 || i_rd < 0 || i_fs < 0 || i_rs < 0) {
+      // 이름 매칭 실패: 업데이트 중단
+      return;
+    }
+
+    const double v_f = js->velocity[i_fd] * (diam * 0.5);
+    const double v_r = js->velocity[i_rd] * (diam * 0.5);
+    const double th_f = js->position[i_fs];
+    const double th_r = js->position[i_rs];
+
+    const double v_cx = 0.5 * (v_f * std::cos(th_f) + v_r * std::cos(th_r));
+    const double v_cy = 0.5 * (v_f * std::sin(th_f) + v_r * std::sin(th_r));
     const double v_c = std::hypot(v_cx, v_cy);
     const double beta = std::atan2(v_cy, v_cx);
-    
-    double w = 0.0;
 
-    const double LIN_EPS  = 1e-3;   // m/s
+    double w = 0.0;
     const double DEN_EPS  = 1e-4;
     const double NUM_EPS  = 1e-4;
-    const double R_EPS    = 1e-2;   // m, "거의 0" 반경
-    const double WHEEL_EPS = 1e-3;
 
     const double numer = std::sin(M_PI/2.0 - th_f + alpha) * l_f;
-    const double denom   = std::sin(th_f - beta);
+    const double denom = std::sin(th_f - beta);
 
-    if (v_c > LIN_EPS && std::fabs(denom) > DEN_EPS && std::fabs(numer) > NUM_EPS) {
-      const double R = numer/ denom;
-      if (std::fabs(R) < R_EPS) {
-        w = v_c / R;
-      }
-      else {
-        // 속도가 너무 작거나, th_f ≈ beta 이면 특이점이므로 회전 없음으로 간주
-        w = 0.0;
-      }
+    if (std::fabs(numer) < NUM_EPS) {
+      w = -v_f / l_f;
     }
-    else{
-      // 2) v_c가 거의 0인데 휠은 돌고 있는 경우 -> 제자리 회전으로 본다
-      if (v_c < LIN_EPS &&
-          (std::fabs(v_f) > WHEEL_EPS || std::fabs(v_r) > WHEEL_EPS))
-      {
-          // 제자리 회전용 w 계산식 (간단 버전 예시)
-          // 실제로는 조향 전략을 보고 부호/계수 맞춰야 함.
-          const double l_f = std::hypot(x_f, y_f);
-          const double l_r = std::hypot(x_r, y_r);
-
-          double w_f = 0.0, w_r = 0.0;
-          if (l_f > 1e-4) w_f = -v_f / l_f;
-          if (l_r > 1e-4) w_r = -v_r / l_r;
-
-          w = 0.5 * (w_f + w_r);  // 단순 평균 (필요하면 더 잘 튜닝)
-      }
-      else {
-          w = 0.0;  // 거의 정지
-      }
+    else if (std::fabs(denom) < DEN_EPS) {
+      w = 0.0;
+    }
+    else {
+      const double R = numer / denom;
+      w = v_c / R;
     }
 
 	if(odom_cur.header.stamp.sec != 0)
@@ -81,7 +88,7 @@ void SteerDrive2WKinematics::execForwKin(const std::shared_ptr<const sensor_msgs
     const double v_y_mid = 0.5 * (v_cy + odom_cur.twist.twist.linear.y);
 		const double w_mid = 0.5 * (w + odom_cur.twist.twist.angular.z);
 		const double phi_mid = phi + w_mid * dt * 0.5;
-    
+
 		odom_cur.pose.pose.position.x += v_x_mid * dt * cos(phi_mid) - v_y_mid * sin(phi_mid) * dt;
 		odom_cur.pose.pose.position.y += v_x_mid * dt * sin(phi_mid) + v_y_mid * cos(phi_mid) * dt;
 		odom_cur.pose.pose.position.z = 0;

@@ -17,7 +17,7 @@ def launch_setup(context, cfg, use_sim_time_arg):
 
     pkg_share = get_package_share_directory('tr_dual_steering')
     gazebo_ros_share = get_package_share_directory('gazebo_ros')
-
+    rviz_cfg = os.path.join(pkg_share, 'rviz', 'tr.rviz')
     yaml_map = {'0': 'config/aligned.yaml','1': 'config/diagonal.yaml'}
     yaml_path = os.path.join(pkg_share, yaml_map[cfg_str])
     xacro_file = os.path.join(pkg_share, 'robots', 'dual_steering_robot.urdf.xacro')
@@ -102,6 +102,12 @@ def launch_setup(context, cfg, use_sim_time_arg):
             ]
         )
     )
+    rviz_node = Node(
+        package='rviz2',
+        executable='rviz2',
+        output='screen',
+        arguments=(['-d', rviz_cfg] if rviz_cfg else [])
+    )
     return [
         gazebo,
         robot_state_publisher_node,
@@ -109,7 +115,8 @@ def launch_setup(context, cfg, use_sim_time_arg):
         kinematics_node,
         spawn_jsb_node,
         delay_velocity_controller_spawner,
-        delay_trajectory_controller_spawner
+        delay_trajectory_controller_spawner,
+        rviz_node
     ]
 
 def generate_launch_description():
