@@ -7,6 +7,7 @@ from launch_ros.parameter_descriptions import ParameterValue
 from launch.event_handlers import OnProcessExit
 
 import os
+import xacro
 from ament_index_python.packages import get_package_share_directory
 
 def launch_setup(context, cfg, use_sim_time_arg):
@@ -20,6 +21,7 @@ def launch_setup(context, cfg, use_sim_time_arg):
     yaml_map = {'0': 'config/aligned.yaml','1': 'config/diagonal.yaml'}
     yaml_path = os.path.join(pkg_share, yaml_map[cfg_str])
     xacro_file = os.path.join(pkg_share, 'robots', 'dual_steering_robot.urdf.xacro')
+    lidar_macro_path = os.path.join(pkg_share, 'robots', 'xacros', 'gazebo_lidar.xacro')
 
     # xacro $(ros2 pkg prefix tr_dual_steering)/share/tr_dual_steering/robots/dual_steering_robot.urdf.xacro yaml_path:=$(ros2 pkg prefix tr_dual_steering)/share/tr_dual_steering/config/aligned.yaml > dual_steering_robot.urdf
     robot_description_cmd = Command([
@@ -31,6 +33,10 @@ def launch_setup(context, cfg, use_sim_time_arg):
         robot_description_cmd,
         value_type=str
     )
+
+    # robot_description = xacro.process_file(
+    #     mappings={'use_gazebo': 'true', 'controller_yaml_path': yaml_path, 'lidar_macro_path': lidar_macro_path}
+    # ).toxml()
 
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(

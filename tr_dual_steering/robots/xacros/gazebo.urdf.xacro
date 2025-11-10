@@ -1,6 +1,28 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="tr">
+<!-- 
+  <xacro:arg name="lidar_macro_path" default=""/>
+
+  <xacro:include filename="$(arg lidar_macro_path)" />
   
+  <xacro:gazebo_lidar_sensor
+        sensor_name="mid360_lidar"
+        link_name="mid360_lidar"
+        update_rate="10"
+        min_range="0.1"
+        max_range="70.0"
+        horizontal_samples="600"
+        horizontal_min_angle="-3.14159265"
+        horizontal_max_angle="3.141159265"
+        vertical_samples="32"
+        vertical_min_angle="-0.12217305"
+        vertical_max_angle="0.90757121"
+        noise_mean="0.0"
+        noise_stddev="0.01"
+        topic_name="scan"
+        visualize='true'
+        />   -->
+
   <ros2_control name="GazeboSystem" type="system">
     <hardware>
       <plugin>gazebo_ros2_control/GazeboSystem</plugin>
