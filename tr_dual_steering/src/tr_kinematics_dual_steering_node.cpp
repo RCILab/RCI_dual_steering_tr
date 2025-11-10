@@ -28,7 +28,7 @@ public:
 		this->declare_parameter<std::vector<std::string>>("steer_joints", {"front_steer_joint","rear_steer_joint"});
 		this->declare_parameter<std::vector<std::string>>("drive_joints", {"front_drive_joint","rear_drive_joint"});
 		this->declare_parameter<std::vector<double>>("module_x", {+0.46, -0.46});
-		this->declare_parameter<std::vector<double>>("module_y", {0.0, 0.0});
+		this->declare_parameter<std::vector<double>>("module_y", {0.30, -0.30});
 
         this->get_parameter("odom_frame", odom_frame);
 		this->get_parameter("base_frame", base_frame);

@@ -7,6 +7,15 @@
 
 #define _USE_MATH_DEFINES
 
+inline double fold_half_pi_and_flip(double theta, double& speed) {
+    double wrapped = std::remainder(theta, M_PI);
+
+    if (std::cos(theta - wrapped) < 0.0) {
+        speed = -speed;
+    }
+    return wrapped;
+}
+
 void SteerDrive2WKinematics::execForwKin(const std::shared_ptr<const sensor_msgs::msg::JointState>& js,
                                          nav_msgs::msg::Odometry& odom)
 {
@@ -63,18 +72,20 @@ void SteerDrive2WKinematics::execInvKin(
   const double v_rx = twist->linear.x - twist->angular.z * y_r;
   const double v_ry = twist->linear.y + twist->angular.z * x_r;
 
-  const double th_f = std::atan2(v_fy, v_fx);
-  const double th_r = std::atan2(v_ry, v_rx);
+  double th_f = std::atan2(v_fy, v_fx);
+  double th_r = std::atan2(v_ry, v_rx);
+  double v_f = std::hypot(v_fx, v_fy) * 2.0 / diam;
+  double v_r = std::hypot(v_rx, v_ry) * 2.0 / diam;
 
-  const double v_f = std::hypot(v_fx, v_fy) * 2.0 / diam;
-  const double v_r = std::hypot(v_rx, v_ry) * 2.0 / diam;
+  th_f = fold_half_pi_and_flip(th_f, v_f);
+  th_r = fold_half_pi_and_flip(th_r, v_r);
 
   steer_traj = trajectory_msgs::msg::JointTrajectory{};
   steer_traj.joint_names = steer_joints;      // size == 2
   steer_traj.points.resize(1);
   auto &pt = steer_traj.points[0];
   pt.positions = {th_f, th_r};                // pos only
-  pt.time_from_start = rclcpp::Duration::from_seconds(0.02); // 20 ms (예시)
+  pt.time_from_start = rclcpp::Duration::from_seconds(0.1); // 20 ms (예시)
 
   drive_cmd = std_msgs::msg::Float64MultiArray{};
   drive_cmd.data = {v_f, v_r};

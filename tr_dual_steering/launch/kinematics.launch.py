@@ -54,9 +54,9 @@ def launch_setup(context, cfg, use_sim_time_arg):
     kinematics_node = Node(
         package='tr_dual_steering',
         executable='tr_dual_steering_node',
-        name='tr_dual_steering',
+        name='tr_dual_steering_node',
         output='screen',
-        parameters=[{'yaml_path': yaml_path}],
+        parameters=[yaml_path],
     )
     spawn_entity_node = Node(
         package='gazebo_ros',
