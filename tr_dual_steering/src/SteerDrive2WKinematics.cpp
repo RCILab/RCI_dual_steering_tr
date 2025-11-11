@@ -1,4 +1,5 @@
 #include <cmath>
+
 #include <geometry_msgs/msg/vector3.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 #include <tf2/LinearMath/Quaternion.h>
@@ -55,6 +56,10 @@ void SteerDrive2WKinematics::execForwKin(const std::shared_ptr<const sensor_msgs
     const double th_f = js->position[i_fs];
     const double th_r = js->position[i_rs];
 
+    cur_th_f_ = th_f;
+    cur_th_r_ = th_r;
+    have_joint_state_ = true;
+
     const double v_cx = 0.5 * (v_f * std::cos(th_f) + v_r * std::cos(th_r));
     const double v_cy = 0.5 * (v_f * std::sin(th_f) + v_r * std::sin(th_r));
     const double v_c = std::hypot(v_cx, v_cy);
@@ -91,7 +96,7 @@ void SteerDrive2WKinematics::execForwKin(const std::shared_ptr<const sensor_msgs
 
 		odom_cur.pose.pose.position.x += v_x_mid * dt * cos(phi_mid) - v_y_mid * sin(phi_mid) * dt;
 		odom_cur.pose.pose.position.y += v_x_mid * dt * sin(phi_mid) + v_y_mid * cos(phi_mid) * dt;
-		odom_cur.pose.pose.position.z = 0;
+		odom_cur.pose.pose.position.z = 0.49;
 		phi += w_mid * dt;
 		tf2::Quaternion q;
 		q.setRPY(0, 0, phi);
@@ -124,15 +129,79 @@ void SteerDrive2WKinematics::execInvKin(
   th_f = fold_half_pi_and_flip(th_f, v_f);
   th_r = fold_half_pi_and_flip(th_r, v_r);
 
+  //1) 목표 조향각과 현재 조향각의 angle_error기반 제어
+  // 최소 오차(-pi ~ pi)로 맞추는 helper
+  auto normalize_angle = [](double a) {
+    while (a > M_PI)  a -= 2.0 * M_PI;
+    while (a < -M_PI) a += 2.0 * M_PI;
+    return a;
+  };
+
+  double th_f_cmd = th_f;
+  double th_r_cmd = th_r;
+  double v_f_cmd = v_f;
+  double v_r_cmd = v_r;
+
+  if (have_joint_state_) {
+    // /joint_states에서 마지막으로 읽은 조향각과 비교
+    double err_f = normalize_angle(th_f - cur_th_f_);
+    double err_r = normalize_angle(th_r - cur_th_r_);
+
+    // 한 주기당 최대 허용 회전량
+    const double max_step = max_steer_rate_ * control_period_;
+
+    auto smooth_cubic_step = [max_step](double err) {
+      if (max_step <= 0.0) return 0.0;  // 안전장치
+
+      double sign = (err >= 0.0) ? 1.0 : -1.0;
+      double u = std::fabs(err) / max_step;
+
+      if (u >= 1.0) {
+        // 완전 포화 구간: 상수 + 기울기 0
+        return sign * max_step;
+      } else {
+        // 0 <= u < 1 구간: 3차 다항식
+        // f(u) = -u^3 + u^2 + u
+        double fu = -u*u*u + u*u + u;
+        return sign * max_step * fu;
+      }
+    };
+
+    // 직선 + clamp 대신, cubic smooth saturation 사용
+    double step_f = smooth_cubic_step(err_f);
+    double step_r = smooth_cubic_step(err_r);
+
+    th_f_cmd = cur_th_f_ + step_f;
+    th_r_cmd = cur_th_r_ + step_r;
+
+    // 2) 오차가 threshold 이상이면 양쪽 구동 정지
+    if (std::fabs(err_f) > ANGLE_ERR_THRESH_ ||
+        std::fabs(err_r) > ANGLE_ERR_THRESH_)
+    {
+      v_f_cmd = 0.0;
+      v_r_cmd = 0.0;
+    }
+    else {
+      // 3) 그 외에는 cos(error)로 스무딩
+      double scale_f = std::cos(err_f/ANGLE_ERR_THRESH_);
+      double scale_r = std::cos(err_r/ANGLE_ERR_THRESH_);
+      if (scale_f < 0.0) scale_f = 0.0;
+      if (scale_r < 0.0) scale_r = 0.0;
+
+      v_f_cmd *= scale_f;
+      v_r_cmd *= scale_r;
+    }
+  }
+
   steer_traj = trajectory_msgs::msg::JointTrajectory{};
   steer_traj.joint_names = steer_joints;      // size == 2
   steer_traj.points.resize(1);
   auto &pt = steer_traj.points[0];
-  pt.positions = {th_f, th_r};                // pos only
+  pt.positions = {th_f_cmd, th_r_cmd};                // pos only
   pt.time_from_start = rclcpp::Duration::from_seconds(0.02); // 20 ms (예시)
 
   drive_cmd = std_msgs::msg::Float64MultiArray{};
-  drive_cmd.data = {v_f, v_r};
+  drive_cmd.data = {v_f_cmd, v_r_cmd};
 }
 
 void SteerDrive2WKinematics::setModuleSpec(

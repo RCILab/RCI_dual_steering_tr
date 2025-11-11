@@ -1,11 +1,8 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="tr">
-<!-- 
-  <xacro:arg name="lidar_macro_path" default=""/>
 
-  <xacro:include filename="$(arg lidar_macro_path)" />
   
-  <xacro:gazebo_lidar_sensor
+  <!-- <xacro:gazebo_lidar_sensor
         sensor_name="mid360_lidar"
         link_name="mid360_lidar"
         update_rate="10"
@@ -13,7 +10,7 @@
         max_range="70.0"
         horizontal_samples="600"
         horizontal_min_angle="-3.14159265"
-        horizontal_max_angle="3.141159265"
+        horizontal_max_angle="3.14159265"
         vertical_samples="32"
         vertical_min_angle="-0.12217305"
         vertical_max_angle="0.90757121"
@@ -22,6 +19,106 @@
         topic_name="scan"
         visualize='true'
         />   -->
+    <!-- <joint name="lidar_base_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="lidar_base"/>
+      <origin xyz="0.2 0 0.18" rpy="0 0 0"/>
+    </joint>
+
+    <link name="lidar_base">
+        <visual>
+            <geometry>
+                <cylinder radius="0.04267" length="0.05867"/>
+            </geometry>
+            <material name="red"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="0.04267" length="0.05867"/>
+            </geometry>
+        </collision>
+        <xacro:inertial_cylinder mass="1.2" length="0.05867" radius="0.04267">
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </xacro:inertial_cylinder>
+    </link>
+
+    <gazebo reference="base">
+        <material>Gazebo/Red</material>
+    </gazebo>
+
+    <joint name="laser_joint" type="fixed">
+        <parent link="base"/>
+        <child link="top"/>
+        <origin xyz="0 0 0.067" rpy="0 0 0"/>
+    </joint>
+
+    <link name="top">
+        <visual>
+            <geometry>
+                <cylinder radius="0.04267" length="0.07357"/>
+            </geometry>
+            <material name="red"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="0.04267" length="0.07357"/>
+            </geometry>
+        </collision>
+        <xacro:inertial_cylinder mass="0.1" length="0.07357" radius="0.04267">
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </xacro:inertial_cylinder>
+    </link>
+   
+    <gazebo reference="top">
+      <material>Gazebo/Red</material>
+
+      <sensor type="ray" name="velodyne2-HDL32E">
+        <pose>0 0 0 0 0 0</pose>
+        <visualize>false</visualize>
+        <update_rate>10</update_rate>
+
+        <ray>
+              <scan>
+                  <horizontal>
+                      <samples>220</samples>
+                      <resolution>1</resolution>
+                      <min_angle>-3.142</min_angle>
+                      <max_angle>3.142</max_angle>
+                  </horizontal>
+                  <vertical>
+                      <samples>32</samples>
+                      <resolution>1</resolution>
+                      <min_angle>-0.535</min_angle>
+                      <max_angle> 0.186</max_angle>
+                  </vertical>
+              </scan>
+
+              <range>
+                  <min>0.3</min>
+                  <max>131.0</max>
+                  <resolution>0.001</resolution>
+              </range>
+
+              <noise>
+                  <type>gaussian</type>
+                  <mean>0.0</mean>
+                  <stddev>0.0</stddev>
+              </noise>
+        </ray>
+        <plugin name="gazebo_ros_laser_controller" filename="libgazebo_ros_velodyne_laser.so">
+          <ros>
+            <namespace>/velodyne2</namespace>
+            <remapping>~/out:=velodyne_points2</remapping>
+          </ros>
+
+          <frame_name>top</frame_name>
+          <organize_cloud>false</organize_cloud>
+          <min_range>0.9</min_range>
+          <max_range>130.0</max_range>
+          <gaussian_noise>0.008</gaussian_noise>
+        </plugin>
+      </sensor>
+    </gazebo> -->
 
   <ros2_control name="GazeboSystem" type="system">
     <hardware>

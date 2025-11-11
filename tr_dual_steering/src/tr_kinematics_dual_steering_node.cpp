@@ -20,7 +20,7 @@ public:
 	int init() {
         this->declare_parameter<std::string>("odom_frame", "odom");
 		this->declare_parameter<std::string>("base_frame", "base_footprint");
-		this->declare_parameter<double>("wheel_diameter", 0.2);
+		this->declare_parameter<double>("wheel_diameter", 0.32);
 		this->declare_parameter<double>("publish_rate_hz", 1000);
 		this->declare_parameter<std::string>("cmd_vel_topic", "cmd_vel");
 		this->declare_parameter<std::string>("steer_traj_topic", "/joint_trajectory_controller/joint_trajectory");
@@ -42,6 +42,7 @@ public:
         this->get_parameter("module_x", module_x);
         this->get_parameter("module_y", module_y);
 
+		std::cout<< "Radius : " << wheel_diameter <<std::endl;
 		topicPub_Odometry = this->create_publisher<nav_msgs::msg::Odometry>("/odom", publish_rate);
 		pubSteer_ = this->create_publisher<trajectory_msgs::msg::JointTrajectory>(steer_traj_topic, publish_rate);
     	pubDrive_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(drive_cmd_topic, publish_rate);
