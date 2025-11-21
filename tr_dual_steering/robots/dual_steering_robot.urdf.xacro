@@ -9,5 +9,4 @@
   <xacro:tr_robot
    yaml_path="$(arg yaml_path)">
   </xacro:tr_robot>
-  
 </robot>

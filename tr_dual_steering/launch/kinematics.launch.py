@@ -14,35 +14,31 @@ def launch_setup(context, cfg, use_sim_time_arg):
     cfg_str = cfg.perform(context) # '0' or '1'
     if cfg_str not in ('0', '1'):
         raise RuntimeError(f"[kinematics.launch] invalid config='{cfg_str}', use 0 or 1")
-
-    pkg_share = get_package_share_directory('tr_dual_steering')
-    gazebo_ros_share = get_package_share_directory('gazebo_ros')
-    rviz_cfg = os.path.join(pkg_share, 'rviz', 'tr.rviz')
     yaml_map = {'0': 'config/aligned.yaml','1': 'config/diagonal.yaml'}
-    yaml_path = os.path.join(pkg_share, yaml_map[cfg_str])
-    xacro_file = os.path.join(pkg_share, 'robots', 'dual_steering_robot.urdf.xacro')
-    lidar_macro_path = os.path.join(pkg_share, 'robots', 'xacros', 'gazebo_lidar.xacro')
 
+    tr_dual_steering_share = get_package_share_directory('tr_dual_steering')
+    neo_simulation_share = get_package_share_directory('neo_simulation2')
+    gazebo_ros_share = get_package_share_directory('gazebo_ros')
+    
+    rviz_cfg = os.path.join(tr_dual_steering_share, 'rviz', 'tr.rviz')
+    yaml_path = os.path.join(tr_dual_steering_share, yaml_map[cfg_str])
+    xacro_file = os.path.join(tr_dual_steering_share, 'robots', 'dual_steering_robot.urdf.xacro')
+    world_path = os.path.join(tr_dual_steering_share,'worlds','costmap_test.world')
+    ekf_config_path = os.path.join(tr_dual_steering_share, 'config', 'ekf.yaml')
+    
     # xacro $(ros2 pkg prefix tr_dual_steering)/share/tr_dual_steering/robots/dual_steering_robot.urdf.xacro yaml_path:=$(ros2 pkg prefix tr_dual_steering)/share/tr_dual_steering/config/aligned.yaml > dual_steering_robot.urdf
-    robot_description_cmd = Command([
-        FindExecutable(name='xacro'), ' ',
-        xacro_file, ' ',
-        'yaml_path:=', yaml_path, ' ',
-    ])
-    robot_description = ParameterValue(
-        robot_description_cmd,
-        value_type=str
-    )
-
-    # robot_description = xacro.process_file(
-    #     mappings={'use_gazebo': 'true', 'controller_yaml_path': yaml_path, 'lidar_macro_path': lidar_macro_path}
-    # ).toxml()
+    robot_description = xacro.process_file(
+        xacro_file,
+        mappings={'use_gazebo': 'true',
+                  'yaml_path': yaml_path,}
+    ).toxml()
 
     gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(gazebo_ros_share, 'launch', 'gazebo.launch.py')
         ),
         launch_arguments={
+            # 'world': world_path,
             'verbose': 'true',
             'use_sim_time': use_sim_time_arg
         }.items()
@@ -57,12 +53,20 @@ def launch_setup(context, cfg, use_sim_time_arg):
             'robot_description': robot_description
         }],
     )
+    ekf_node = Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_localization',
+        parameters=[ekf_config_path, {'use_sim_time': use_sim_time_arg}],
+        remappings=[('odometry/filtered', 'ekf_odom')]
+    )
+
     kinematics_node = Node(
         package='tr_dual_steering',
         executable='tr_dual_steering_node',
         name='tr_dual_steering_node',
         output='screen',
-        parameters=[yaml_path],
+        parameters=[yaml_path, {'use_sim_time': use_sim_time_arg}],
     )
     spawn_entity_node = Node(
         package='gazebo_ros',
@@ -108,15 +112,17 @@ def launch_setup(context, cfg, use_sim_time_arg):
         output='screen',
         arguments=(['-d', rviz_cfg] if rviz_cfg else [])
     )
+
     return [
         gazebo,
         robot_state_publisher_node,
         spawn_entity_node,
         kinematics_node,
+        ekf_node,
         spawn_jsb_node,
         delay_velocity_controller_spawner,
         delay_trajectory_controller_spawner,
-        rviz_node
+        # rviz_node
     ]
 
 def generate_launch_description():

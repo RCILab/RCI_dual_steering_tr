@@ -32,13 +32,16 @@ private:
   double x_f{0.0}, y_f{0.0}, x_r{0.0}, y_r{0.0}, l_f{0.0}, alpha{0.0};
   double phi{0.0};
 
+  double cur_v_f_{0.0};
+  double cur_v_r_{0.0};
   double cur_th_f_{0.0};
   double cur_th_r_{0.0};
-  bool   have_joint_state_{false};
+  bool   have_drive_state_{false};
+  bool   have_steer_state_{false};
 
   double ANGLE_ERR_THRESH_{M_PI / 36.0}; // ~45deg, rad 단위
-  double max_steer_rate_{1.0};             // rad/s, 조향 최대 각속도 (원하는 값으로 튜닝)
-  double control_period_{0.1}; 
+  double max_steer_rate_{3.0};             // rad/s, 조향 최대 각속도 (원하는 값으로 튜닝)
+  double control_period_{1.0}; 
 
   std::vector<std::string> steer_joints; // size 2
   std::vector<std::string> drive_joints; // size 2

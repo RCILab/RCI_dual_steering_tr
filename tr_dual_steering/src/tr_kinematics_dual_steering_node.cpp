@@ -43,14 +43,14 @@ public:
         this->get_parameter("module_y", module_y);
 
 		std::cout<< "Radius : " << wheel_diameter <<std::endl;
-		topicPub_Odometry = this->create_publisher<nav_msgs::msg::Odometry>("/odom", publish_rate);
-		pubSteer_ = this->create_publisher<trajectory_msgs::msg::JointTrajectory>(steer_traj_topic, publish_rate);
-    	pubDrive_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(drive_cmd_topic, publish_rate);
+		topicPub_Odometry = this->create_publisher<nav_msgs::msg::Odometry>("/odom1", 10);
+		pubSteer_ = this->create_publisher<trajectory_msgs::msg::JointTrajectory>(steer_traj_topic, 10);
+    	pubDrive_ = this->create_publisher<std_msgs::msg::Float64MultiArray>(drive_cmd_topic, 10);
 
 		topicSub_ComVel = this->create_subscription<geometry_msgs::msg::Twist>(cmd_vel_topic, 1, std::bind(&PlatformCtrlNode::receiveCmd, this, _1));
 		topicSub_DriveState = this->create_subscription<sensor_msgs::msg::JointState>("/joint_states", 10, std::bind(&PlatformCtrlNode::receiveOdo, this, _1));
 
-		odom_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this);
+		// odom_broadcaster = std::make_shared<tf2_ros::TransformBroadcaster>(this);
 
 		this->kin = new SteerDrive2WKinematics();
 		this->kin->setModuleSpec(wheel_diameter, steer_joints, drive_joints, module_x, module_y);
@@ -77,19 +77,19 @@ public:
 		kin->execForwKin(js, odom);
 		topicPub_Odometry->publish(odom);
 
-		//odometry transform:
-		if(sendTransform) {
-			geometry_msgs::msg::TransformStamped odom_trans;
-			odom_trans.header.stamp = odom.header.stamp;
-            odom_trans.header.frame_id = odom_frame;
-            odom_trans.child_frame_id = base_frame;
+		// //odometry transform:
+		// if(sendTransform) {
+		// 	geometry_msgs::msg::TransformStamped odom_trans;
+		// 	odom_trans.header.stamp = odom.header.stamp;
+        //     odom_trans.header.frame_id = odom_frame;
+        //     odom_trans.child_frame_id = base_frame;
 
-			odom_trans.transform.translation.x = odom.pose.pose.position.x;
-			odom_trans.transform.translation.y = odom.pose.pose.position.y;
-			odom_trans.transform.translation.z = odom.pose.pose.position.z;
-			odom_trans.transform.rotation = odom.pose.pose.orientation;
-			odom_broadcaster->sendTransform(odom_trans);
-		}
+		// 	odom_trans.transform.translation.x = odom.pose.pose.position.x;
+		// 	odom_trans.transform.translation.y = odom.pose.pose.position.y;
+		// 	odom_trans.transform.translation.z = odom.pose.pose.position.z;
+		// 	odom_trans.transform.rotation = odom.pose.pose.orientation;
+		// 	odom_broadcaster->sendTransform(odom_trans);
+		// }
 	}
 
 private:

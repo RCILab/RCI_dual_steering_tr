@@ -5,8 +5,8 @@
                params="yaml_path">
 
     <xacro:include filename="$(find tr_dual_steering)/robots/xacros/dual_steering_robot_body.xacro"/>
-    <xacro:include filename="$(find tr_dual_steering)/robots/xacros/qd_wheel.xacro"/>
-    <xacro:include filename="$(find tr_dual_steering)/robots/xacros/caster_wheel.xacro"/>
+    <xacro:include filename="$(find tr_dual_steering)/robots/xacros/wheel/qd_wheel.xacro"/>
+    <xacro:include filename="$(find tr_dual_steering)/robots/xacros/wheel/caster_wheel.xacro"/>
 
     <xacro:property name="cfg_name" value="${xacro.load_yaml(yaml_path)}"/>
     <xacro:property name="p" value="${cfg_name['tr_dual_steering_node']['ros__parameters']}"/>
@@ -25,7 +25,7 @@
     <xacro:dual_steering_robot_base 
       name="base_link" 
       parent="base_footprint">
-      <origin xyz="0 0 0" rpy="0 0 0" />
+      <origin xyz="0 0 0.49" rpy="0 0 0" />
     </xacro:dual_steering_robot_base>
 
     <!-- front qd wheel -->
@@ -73,8 +73,8 @@
         <origin xyz="${-L_half} ${-caster_b_half}  ${-caster_height}" rpy="0 0 0" />
       </xacro:caster_wheel_75>
     </xacro:if>
-    
-    <xacro:include filename="$(find tr_dual_steering)/robots/xacros/gazebo.urdf.xacro"/>
+
+    <xacro:include filename="$(find tr_dual_steering)/robots/gazebo.urdf.xacro"/>
 
   </xacro:macro>
 

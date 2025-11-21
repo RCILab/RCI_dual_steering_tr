@@ -10,16 +10,16 @@
                   iyy="2.8" iyz="0.0" 
                   izz="2.8" />
       </inertial>
-      <visual>
+      <!-- <visual>
         <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
         <geometry>
             <box size="1.4 1.0 0.24"/>
         </geometry>
-      </visual>
+      </visual> -->
       <collision>
         <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
         <geometry>
-            <box size="1.0 0.80 0.24"/>
+            <box size="1.4 1.0 0.24"/>
         </geometry>
       </collision>
     </link>

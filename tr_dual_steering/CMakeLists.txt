@@ -61,12 +61,14 @@ DESTINATION lib/${PROJECT_NAME}
 )
 
 install(DIRECTORY
-  world
+  worlds
   models
   robots
   config
   launch
   rviz
+  map
+  pcd
   DESTINATION share/${PROJECT_NAME}
 )
 

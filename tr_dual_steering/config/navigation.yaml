@@ -1,0 +1,218 @@
+bt_navigator:
+  ros__parameters:
+    use_sim_time: True
+    global_frame: map
+    robot_base_frame: base_footprint
+    odom_topic: /ekf_odom
+    bt_loop_duration: 10
+    default_server_timeout: 20
+    groot_zmq_publisher_port: 1666
+    groot_zmq_server_port: 1667
+    plugin_lib_names:
+    - nav2_compute_path_to_pose_action_bt_node
+    - nav2_compute_path_through_poses_action_bt_node
+    - nav2_smooth_path_action_bt_node
+    - nav2_follow_path_action_bt_node
+    - nav2_spin_action_bt_node
+    - nav2_wait_action_bt_node
+    - nav2_back_up_action_bt_node
+    - nav2_drive_on_heading_bt_node
+    - nav2_clear_costmap_service_bt_node
+    - nav2_is_stuck_condition_bt_node
+    - nav2_goal_reached_condition_bt_node
+    - nav2_goal_updated_condition_bt_node
+    - nav2_globally_updated_goal_condition_bt_node
+    - nav2_is_path_valid_condition_bt_node
+    - nav2_initial_pose_received_condition_bt_node
+    - nav2_reinitialize_global_localization_service_bt_node
+    - nav2_rate_controller_bt_node
+    - nav2_distance_controller_bt_node
+    - nav2_speed_controller_bt_node
+    - nav2_truncate_path_action_bt_node
+    - nav2_truncate_path_local_action_bt_node
+    - nav2_goal_updater_node_bt_node
+    - nav2_recovery_node_bt_node
+    - nav2_pipeline_sequence_bt_node
+    - nav2_round_robin_node_bt_node
+    - nav2_transform_available_condition_bt_node
+    - nav2_time_expired_condition_bt_node
+    - nav2_path_expiring_timer_condition
+    - nav2_distance_traveled_condition_bt_node
+    - nav2_single_trigger_bt_node
+    - nav2_is_battery_low_condition_bt_node
+    - nav2_navigate_through_poses_action_bt_node
+    - nav2_navigate_to_pose_action_bt_node
+    - nav2_remove_passed_goals_action_bt_node
+    - nav2_planner_selector_bt_node
+    - nav2_controller_selector_bt_node
+    - nav2_goal_checker_selector_bt_node
+    - nav2_controller_cancel_bt_node
+    - nav2_path_longer_on_approach_bt_node
+    - nav2_wait_cancel_bt_node
+    - nav2_spin_cancel_bt_node
+    - nav2_back_up_cancel_bt_node
+    - nav2_drive_on_heading_cancel_bt_node
+
+bt_navigator_navigate_through_poses_rclcpp_node:
+  ros__parameters:
+    use_sim_time: True
+
+bt_navigator_navigate_to_pose_rclcpp_node:
+  ros__parameters:
+    use_sim_time: True
+
+controller_server:
+  ros__parameters:
+    odom_topic: /ekf_odom
+    controller_frequency: 10.0
+    min_x_velocity_threshold: 0.001
+    progress_checker_plugin: "progress_checker"
+    goal_checker_plugins: ["general_goal_checker"]
+    controller_plugins: ["FollowPath"]
+    use_sim_time: True
+    transform_tolerance: 3.0
+    # speed_filter_topic: "speed_limit"
+    progress_checker:
+      plugin: "nav2_controller::SimpleProgressChecker"
+      required_movement_radius: 0.01
+      movement_time_allowance: 30.0
+    general_goal_checker:
+      plugin: "nav2_controller::SimpleGoalChecker"
+      xy_goal_tolerance: 0.05
+      yaw_goal_tolerance: 0.2
+      stateful: True
+    FollowPath:
+      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
+      
+      # [핵심 1] 제자리 회전 허용 (이게 True여야 각도가 클 때 멈춰서 돕니다)
+      use_rotate_to_heading: true 
+      # [핵심 2] 회전 반경 제한 없음 (0.0 = 제자리 회전 가능)
+      min_turning_radius: 0.0
+      # [핵심 3] 제자리 회전 조건 (라디안)
+      # 경로와 로봇의 각도 차이가 45도(0.785 rad) 이상이면 멈춰서 회전부터 합니다.
+      rotate_to_heading_min_angle: 0.785 
+      
+      # [핵심 4] 제자리 회전 속도 (너무 빠르면 흔들릴 수 있음)
+      rotate_to_heading_angular_vel: 1.0 
+      
+      # 주행 속도 설정 (테스트용으로 안전하게)
+      desired_linear_vel: 0.5
+      max_angular_vel: 1.5
+      
+      # Lookahead 설정 (주행 부드러움 결정)
+      lookahead_dist: 1.5
+      min_lookahead_dist: 0.5
+      max_lookahead_dist: 2.0
+      
+      allow_reversing: true
+      transform_tolerance: 3.0 # (아까 수정한 TF 허용 오차 유지)
+
+local_costmap:
+  local_costmap:
+    ros__parameters:
+      transform_tolerance: 10.0    # [수정] 오타 수정 (t 추가) & 넉넉하게 1.5로
+      update_frequency: 5.0         # [권장] 시뮬레이션 부하 줄이기 위해 10 -> 5로 낮춤
+      publish_frequency: 2.0
+      global_frame: odom
+      robot_base_frame: base_footprint
+      footprint_padding: 0.0
+      footprint: "[ [0.7,0.5],[-0.7,0.5],[-0.7,-0.5],[0.7,-0.5] ]"
+      use_sim_time: True            # [수정] 시뮬레이션이므로 True
+      rolling_window: true
+      width: 10
+      height: 10
+      resolution: 0.05              # [권장] 맵 해상도와 맞춤 (0.02는 너무 고해상도일 수 있음)
+      robot_radius: 0.22
+      plugins: ["obstacle_layer", "inflation_layer"]
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 5.0
+        inflation_radius: 0.55
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: scan
+        scan:
+          topic: /cloud_registered
+          max_obstacle_height: 2.0
+          min_obstacle_height: 0.1  # [추가] 바닥 노이즈 제거용 (필수)
+          clearing: True
+          marking: True
+          data_type: "PointCloud2"  # [수정] LaserScan -> PointCloud2 (핵심!)
+      always_send_full_costmap: True
+
+global_costmap:
+  global_costmap:
+    ros__parameters:
+      transform_tolerance: 3.0      # [수정] 오타 수정
+      update_frequency: 0.5
+      publish_frequency: 0.5
+      global_frame: map
+      robot_base_frame: base_footprint
+      footprint_padding: 0.0
+      footprint: "[ [0.45,0.4],[-0.45,0.4],[-0.45,-0.4],[0.45,-0.4] ]"
+      use_sim_time: True            # [수정] True
+      resolution: 0.05              # [권장] 0.02 -> 0.05
+      track_unknown_space: true
+      plugins: ["static_layer", "inflation_layer"]
+      static_layer:
+        plugin: "nav2_costmap_2d::StaticLayer"
+        map_subscribe_transient_local: True
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 5.0
+        inflation_radius: 0.55
+      always_send_full_costmap: True
+
+map_server:
+  ros__parameters:
+    use_sim_time: True
+    yaml_filename: "vlp16.yaml"
+
+map_saver:
+  ros__parameters:
+    use_sim_time: True
+    save_map_timeout: 5000
+    free_thresh_default: 0.25
+    occupied_thresh_default: 0.65
+    map_subscribe_transient_local: False
+
+planner_server:
+  ros__parameters:
+    planner_plugins: ["GridBased"]
+    GridBased:
+      plugin: "nav2_navfn_planner/NavfnPlanner"
+      tolerance: 0.5
+      use_astar: false
+      allow_unknown: true
+
+behavior_server:
+  ros__parameters:
+    costmap_topic: local_costmap/costmap_raw
+    footprint_topic: local_costmap/published_footprint
+    cycle_frequency: 10.0
+    behavior_plugins: ["spin", "backup", "wait"]
+    spin:
+      plugin: "nav2_behaviors/Spin"
+    backup:
+      plugin: "nav2_behaviors/BackUp"
+    wait:
+      plugin: "nav2_behaviors/Wait"
+    global_frame: map
+    robot_base_frame: base_footprint
+    transform_timeout: 0.1
+    use_sim_time: True
+    simulate_ahead_time: 2.0
+    max_rotational_vel: 0.5
+    min_rotational_vel: 0.3
+    rotational_acc_lim: 0.8
+
+waypoint_follower:
+  ros__parameters:
+    loop_rate: 20
+    stop_on_failure: false
+    waypoint_task_executor_plugin: "wait_at_waypoint"
+    wait_at_waypoint:
+      plugin: "nav2_waypoint_follower::WaitAtWaypoint"
+      enabled: True
+      waypoint_pause_duration: 200

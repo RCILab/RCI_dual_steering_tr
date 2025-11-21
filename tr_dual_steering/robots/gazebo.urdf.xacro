@@ -1,0 +1,177 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="tr">
+
+  <xacro:include filename="$(find tr_dual_steering)/robots/xacros/sensor/VLP-16.urdf.xacro"/>
+  <xacro:include filename="$(find tr_dual_steering)/robots/xacros/sensor/HDL-32E.urdf.xacro"/>
+
+
+  <xacro:VLP-16>
+    <origin xyz="0 0 0.2305" rpy="0 0 0"/>
+  </xacro:VLP-16>
+
+  <!-- <xacro:HDL-32E>
+    <origin xyz="0 0 0.2332" rpy="0 0 0"/>
+  </xacro:HDL-32E> -->
+
+  <link name="imu_link">
+    <inertial>
+      <mass value="0.01"/>
+      <origin xyz="0 0 0"/>
+      <inertia ixx="1e-6" ixy="0" ixz="0" iyy="1e-6" iyz="0" izz="1e-6"/>
+    </inertial>
+    <collision>
+      <origin xyz="0 0 0"/>
+      <geometry><sphere radius="0.005"/></geometry>
+    </collision>
+    <visual>
+      <origin xyz="0 0 0"/>
+      <geometry><sphere radius="0.005"/></geometry>
+    </visual>
+  </link>
+
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="imu_link"/>
+    <origin xyz="0.1 0 0.12" rpy="0 0 0"/>
+  </joint>
+
+  <gazebo reference="imu_link">
+      <sensor name="imu_sensor" type="imu">
+          <always_on>true</always_on>
+          <update_rate>200</update_rate>
+          <visualize>false</visualize>
+          <plugin filename="libgazebo_ros_imu_sensor.so" name="gazebo_ros_imu_sensor">
+              <frame_name>imu_link</frame_name>
+              <initial_orientation_as_reference>false</initial_orientation_as_reference>
+              <ros>
+                <remapping>~/out:=/imu/data</remapping>
+              </ros>
+          </plugin>
+          <imu>
+              <angular_velocity>
+                  <x>
+                      <noise type="gaussian">
+                          <mean>0.0</mean>
+                          <stddev>2e-4</stddev>
+                          <bias_mean>0.0000075</bias_mean>
+                          <bias_stddev>0.0000008</bias_stddev>
+                      </noise>
+                  </x>
+                  <y>
+                      <noise type="gaussian">
+                          <mean>0.0</mean>
+                          <stddev>2e-4</stddev>
+                          <bias_mean>0.0000075</bias_mean>
+                          <bias_stddev>0.0000008</bias_stddev>
+                      </noise>
+                  </y>
+                  <z>
+                      <noise type="gaussian">
+                          <mean>0.0</mean>
+                          <stddev>2e-4</stddev>
+                          <bias_mean>0.0000075</bias_mean>
+                          <bias_stddev>0.0000008</bias_stddev>
+                      </noise>
+                  </z>
+              </angular_velocity>
+              <linear_acceleration>
+                  <x>
+                      <noise type="gaussian">
+                          <mean>0.0</mean>
+                          <stddev>1.7e-2</stddev>
+                          <bias_mean>0.1</bias_mean>
+                          <bias_stddev>0.001</bias_stddev>
+                      </noise>
+                  </x>
+                  <y>
+                      <noise type="gaussian">
+                          <mean>0.0</mean>
+                          <stddev>1.7e-2</stddev>
+                          <bias_mean>0.1</bias_mean>
+                          <bias_stddev>0.001</bias_stddev>
+                      </noise>
+                  </y>
+                  <z>
+                      <noise type="gaussian">
+                          <mean>0.0</mean>
+                          <stddev>1.7e-2</stddev>
+                          <bias_mean>0.1</bias_mean>
+                          <bias_stddev>0.001</bias_stddev>
+                      </noise>
+                  </z>
+              </linear_acceleration>
+          </imu>
+      </sensor>
+  </gazebo>
+
+    
+  <ros2_control name="GazeboSystem" type="system">
+    <hardware>
+      <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+    </hardware>
+    <joint name="front_drive_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="rear_drive_joint">
+      <command_interface name="velocity"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="front_steer_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="rear_steer_joint">
+      <command_interface name="position"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="robot_caster_wheel_front_left_mount_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="robot_caster_wheel_front_left_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="robot_caster_wheel_front_right_mount_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="robot_caster_wheel_front_right_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="robot_caster_wheel_rear_left_mount_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="robot_caster_wheel_rear_left_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+
+    <joint name="robot_caster_wheel_rear_right_mount_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+    <joint name="robot_caster_wheel_rear_right_joint">
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+    </joint>
+  </ros2_control>
+
+    
+  <gazebo>
+    <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+      <parameters>$(find tr_dual_steering)/config/controller.yaml</parameters>
+    </plugin>
+  </gazebo>
+
+</robot>
