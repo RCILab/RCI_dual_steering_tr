@@ -38,7 +38,7 @@ def launch_setup(context, cfg, use_sim_time_arg):
             os.path.join(gazebo_ros_share, 'launch', 'gazebo.launch.py')
         ),
         launch_arguments={
-            # 'world': world_path,
+            'world': world_path,
             'verbose': 'true',
             'use_sim_time': use_sim_time_arg
         }.items()

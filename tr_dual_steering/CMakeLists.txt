@@ -67,7 +67,7 @@ install(DIRECTORY
   config
   launch
   rviz
-  map
+  maps
   pcd
   DESTINATION share/${PROJECT_NAME}
 )

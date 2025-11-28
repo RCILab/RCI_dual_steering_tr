@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="dual_steering_robot">
+
+  <xacro:macro name="dual_steering_robot_base" params="name parent *origin">
+    <link name="${name}">
+      <inertial>
+        <mass value="55"/>
+        <origin xyz="0.0 0.0 0.0" />
+         <inertia ixx="2.8" ixy="0.0" ixz="0.0"
+                  iyy="2.8" iyz="0.0" 
+                  izz="2.8" />
+      </inertial>
+      <!-- <visual>
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+        <geometry>
+            <box size="1.4 1.0 0.24"/>
+        </geometry>
+      </visual> -->
+      <collision>
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+        <geometry>
+            <box size="1.4 1.0 0.24"/>
+        </geometry>
+      </collision>
+    </link>
+    <joint name="${name}_joint" type="fixed">
+      <xacro:insert_block name="origin" />
+      <parent link="${parent}" />
+      <child link="${name}" />
+   </joint>
+  </xacro:macro>
+  
+</robot>

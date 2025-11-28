@@ -30,8 +30,6 @@ def generate_launch_description():
         default=os.path.join(tr_dual_steering_share,'config','navigation.yaml')
     )
 
-    # pcd_map_path = os.path.join(tr_dual_steering_share, 'pcd', map_name,'.pcd')
-    # yaml_map_path = os.path.join(tr_dual_steering_share, 'map', map_name,'.yaml')
     pcd_map_path = PathJoinSubstitution([
         tr_dual_steering_share, 
         'pcd', 
@@ -40,7 +38,7 @@ def generate_launch_description():
     
     yaml_map_path = PathJoinSubstitution([
         tr_dual_steering_share, 
-        'map', 
+        'maps', 
         PythonExpression(["'", map_name, ".yaml'"]) # 'map_name' + '.yaml'
     ])
 

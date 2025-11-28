@@ -1479,8 +1479,8 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <mu>1.5</mu>
+                <mu2>2.0</mu2>
               </ode>
               <torsional>
                 <ode/>
@@ -1528,8 +1528,8 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <mu>1.5</mu>
+                <mu2>2.0</mu2>
               </ode>
               <torsional>
                 <ode/>
@@ -1577,8 +1577,8 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <mu>1.5</mu>
+                <mu2>2.0</mu2>
               </ode>
               <torsional>
                 <ode/>
@@ -1626,8 +1626,8 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <mu>1.5</mu>
+                <mu2>2.0</mu2>
               </ode>
               <torsional>
                 <ode/>
@@ -1675,8 +1675,8 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <mu>1.5</mu>
+                <mu2>2.0</mu2>
               </ode>
               <torsional>
                 <ode/>
@@ -1724,8 +1724,8 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <mu>1.5</mu>
+                <mu2>2.0</mu2>
               </ode>
               <torsional>
                 <ode/>
@@ -1773,8 +1773,8 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <mu>1.5</mu>
+                <mu2>2.0</mu2>
               </ode>
               <torsional>
                 <ode/>
@@ -1822,8 +1822,8 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <mu>1.5</mu>
+                <mu2>2.0</mu2>
               </ode>
               <torsional>
                 <ode/>
@@ -1871,8 +1871,8 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <mu>1.5</mu>
+                <mu2>2.0</mu2>
               </ode>
               <torsional>
                 <ode/>
@@ -1920,8 +1920,8 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <mu>1.5</mu>
+                <mu2>2.0</mu2>
               </ode>
               <torsional>
                 <ode/>
@@ -1969,8 +1969,8 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <mu>1.5</mu>
+                <mu2>2.0</mu2>
               </ode>
               <torsional>
                 <ode/>
@@ -2018,8 +2018,8 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <mu>1.5</mu>
+                <mu2>2.0</mu2>
               </ode>
               <torsional>
                 <ode/>
@@ -2067,8 +2067,8 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <mu>1.5</mu>
+                <mu2>2.0</mu2>
               </ode>
               <torsional>
                 <ode/>
@@ -2116,8 +2116,8 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <mu>1.5</mu>
+                <mu2>2.0</mu2>
               </ode>
               <torsional>
                 <ode/>
@@ -2165,8 +2165,8 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <mu>1.5</mu>
+                <mu2>2.0</mu2>
               </ode>
               <torsional>
                 <ode/>
@@ -2214,8 +2214,8 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <mu>1.5</mu>
+                <mu2>2.0</mu2>
               </ode>
               <torsional>
                 <ode/>
@@ -2400,12 +2400,10 @@
           <surface>
             <friction>
               <ode>
-                <mu>100</mu>
-                <mu2>50</mu2>
+                <!-- Gazebo 기본에 가까운 값으로 낮춤 -->
+                <mu>1.5</mu>
+                <mu2>2.0</mu2>
               </ode>
-              <torsional>
-                <ode/>
-              </torsional>
             </friction>
             <contact>
               <ode/>
@@ -2414,25 +2412,7 @@
           </surface>
           <max_contacts>10</max_contacts>
         </collision>
-        <visual name='visual'>
-          <cast_shadows>0</cast_shadows>
-          <geometry>
-            <plane>
-              <normal>0 0 1</normal>
-              <size>100 100</size>
-            </plane>
-          </geometry>
-          <material>
-            <script>
-              <uri>model://neobotix_ground_plane/materials/scripts</uri>
-              <uri>model://neobotix_ground_plane/materials/textures/</uri>
-              <name>NeobotixGroundPlane/Image</name>
-            </script>
-          </material>
-        </visual>
-        <self_collide>0</self_collide>
-        <enable_wind>0</enable_wind>
-        <kinematic>0</kinematic>
+        ...
       </link>
       <pose>15.6163 -0.783534 0 0 -0 0</pose>
     </model>

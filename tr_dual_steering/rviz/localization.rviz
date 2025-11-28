@@ -6,7 +6,6 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /Odometry1/Status1
       Splitter Ratio: 0.5
     Tree Height: 732
   - Class: rviz_common/Selection
@@ -53,6 +52,22 @@ Visualization Manager:
           Value: true
         rear_steer_link:
           Value: true
+        robot_caster_wheel_front_left_link:
+          Value: true
+        robot_caster_wheel_front_left_mount_link:
+          Value: true
+        robot_caster_wheel_front_right_link:
+          Value: true
+        robot_caster_wheel_front_right_mount_link:
+          Value: true
+        robot_caster_wheel_rear_left_link:
+          Value: true
+        robot_caster_wheel_rear_left_mount_link:
+          Value: true
+        robot_caster_wheel_rear_right_link:
+          Value: true
+        robot_caster_wheel_rear_right_mount_link:
+          Value: true
         velodyne:
           Value: true
         velodyne_base_link:
@@ -74,6 +89,18 @@ Visualization Manager:
                   {}
                 rear_steer_link:
                   rear_drive_link:
+                    {}
+                robot_caster_wheel_front_left_mount_link:
+                  robot_caster_wheel_front_left_link:
+                    {}
+                robot_caster_wheel_front_right_mount_link:
+                  robot_caster_wheel_front_right_link:
+                    {}
+                robot_caster_wheel_rear_left_mount_link:
+                  robot_caster_wheel_rear_left_link:
+                    {}
+                robot_caster_wheel_rear_right_mount_link:
+                  robot_caster_wheel_rear_right_link:
                     {}
                 velodyne_base_link:
                   velodyne:
@@ -202,7 +229,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 0
@@ -223,7 +250,7 @@ Visualization Manager:
         Value: /cloud_registered
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Angle Tolerance: 0.10000000149011612
       Class: rviz_default_plugins/Odometry
       Covariance:
@@ -286,7 +313,7 @@ Visualization Manager:
       Value: true
     - Alpha: 0.699999988079071
       Class: rviz_default_plugins/Map
-      Color Scheme: map
+      Color Scheme: costmap
       Draw Behind: false
       Enabled: true
       Name: Map
@@ -379,7 +406,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 7.4132466316223145
+      Distance: 13.064674377441406
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -436,4 +463,4 @@ Window Geometry:
     collapsed: false
   Width: 1885
   X: 1955
-  Y: 1093
+  Y: 27

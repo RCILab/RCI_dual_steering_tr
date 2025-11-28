@@ -83,29 +83,21 @@ controller_server:
       stateful: True
     FollowPath:
       plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
-      
-      # [핵심 1] 제자리 회전 허용 (이게 True여야 각도가 클 때 멈춰서 돕니다)
-      use_rotate_to_heading: true 
-      # [핵심 2] 회전 반경 제한 없음 (0.0 = 제자리 회전 가능)
-      min_turning_radius: 0.0
-      # [핵심 3] 제자리 회전 조건 (라디안)
-      # 경로와 로봇의 각도 차이가 45도(0.785 rad) 이상이면 멈춰서 회전부터 합니다.
-      rotate_to_heading_min_angle: 0.785 
-      
-      # [핵심 4] 제자리 회전 속도 (너무 빠르면 흔들릴 수 있음)
-      rotate_to_heading_angular_vel: 1.0 
-      
-      # 주행 속도 설정 (테스트용으로 안전하게)
-      desired_linear_vel: 0.5
+
+      desired_linear_vel: 0.5        # 기본 직진 속도
       max_angular_vel: 1.5
-      
-      # Lookahead 설정 (주행 부드러움 결정)
-      lookahead_dist: 1.5
+
+      lookahead_dist: 1.0
       min_lookahead_dist: 0.5
-      max_lookahead_dist: 2.0
-      
-      allow_reversing: true
-      transform_tolerance: 3.0 # (아까 수정한 TF 허용 오차 유지)
+      max_lookahead_dist: 1.5
+      use_velocity_scaled_lookahead_dist: false
+
+      # 속도 줄이는 옵션들 일단 끔
+      use_regulated_linear_velocity_scaling: false
+      use_cost_regulated_linear_velocity_scaling: false
+      use_rotate_to_heading: true
+      rotate_to_heading_min_angle: 0.785
+      rotate_to_heading_angular_vel: 1.0
 
 local_costmap:
   local_costmap:
@@ -179,6 +171,7 @@ map_saver:
 
 planner_server:
   ros__parameters:
+    use_sim_time: True
     planner_plugins: ["GridBased"]
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
@@ -209,6 +202,7 @@ behavior_server:
 
 waypoint_follower:
   ros__parameters:
+    use_sim_time: True
     loop_rate: 20
     stop_on_failure: false
     waypoint_task_executor_plugin: "wait_at_waypoint"

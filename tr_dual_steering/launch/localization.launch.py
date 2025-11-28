@@ -14,7 +14,7 @@ def generate_launch_description():
                                             default_value= '/home/home/RCI_dual_steering_ws/src/tr_dual_steering/pcd/vlp16.pcd',
                                             description='Full path to map(pcd)file')
     declare_yaml_map = DeclareLaunchArgument('yaml_map', 
-                                            default_value= '/home/home/RCI_dual_steering_ws/src/tr_dual_steering/map/vlp16.yaml',
+                                            default_value= '/home/home/RCI_dual_steering_ws/src/tr_dual_steering/maps/vlp16.yaml',
                                             description='Full path to map(yaml)file')
     declare_use_sim_time = DeclareLaunchArgument('use_sim_time', default_value='true')
     declare_params = DeclareLaunchArgument('params_file', 

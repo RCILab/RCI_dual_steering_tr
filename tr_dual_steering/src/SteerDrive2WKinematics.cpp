@@ -7,6 +7,7 @@
 #include "../include/SteerDrive2WKinematics.hpp"
 
 #define _USE_MATH_DEFINES
+using SteerMode = SteerDrive2WKinematics::SteerMode;
 
 inline double fold_half_pi_and_flip(double theta, double& speed) {
     // r: theta를 π로 접은 나머지 ([-π/2, +π/2]에 옴)
@@ -114,140 +115,199 @@ void SteerDrive2WKinematics::execForwKin(const std::shared_ptr<const sensor_msgs
 	odom = odom_cur;
 }
 
+
 void SteerDrive2WKinematics::execInvKin(
   const std::shared_ptr<const geometry_msgs::msg::Twist>& twist,
+  const std::shared_ptr<const sensor_msgs::msg::JointState>& joint_state,
   trajectory_msgs::msg::JointTrajectory& steer_traj,
-  std_msgs::msg::Float64MultiArray& drive_cmd)
+  std_msgs::msg::Float64MultiArray& drive_cmd
+)
 {
+  // Get Command
   const double v_fx = twist->linear.x - twist->angular.z * y_f;
   const double v_fy = twist->linear.y + twist->angular.z * x_f;
   const double v_rx = twist->linear.x - twist->angular.z * y_r;
   const double v_ry = twist->linear.y + twist->angular.z * x_r;
 
-  double th_f = std::atan2(v_fy, v_fx);
-  double th_r = std::atan2(v_ry, v_rx);
-  double v_f = std::hypot(v_fx, v_fy) * 2.0 / diam;
-  double v_r = std::hypot(v_rx, v_ry) * 2.0 / diam;
+  // Command Filtering
+  double th_f_target;
+  double th_r_target;
+  double v_f_target;
+  double v_r_target;
 
-  th_f = fold_half_pi_and_flip(th_f, v_f);
-  th_r = fold_half_pi_and_flip(th_r, v_r);
+  // Target
+  const double eps = 1e-6;
+  if (std::hypot(v_fx, v_fy) < eps && std::hypot(v_rx, v_ry) < eps) {
+    // 거의 안 움직이는 상황 → 여기서는 조향 target 정책을 직접 정할 수 있음
+    th_f_target = 0.0;
+    th_r_target = 0.0;
+    v_f_target  = 0.0;
+    v_r_target  = 0.0;
+  } else {
+    th_f_target = std::atan2(v_fy, v_fx);
+    th_r_target = std::atan2(v_ry, v_rx);
+    v_f_target  = std::hypot(v_fx, v_fy) * 2.0 / diam;
+    v_r_target  = std::hypot(v_rx, v_ry) * 2.0 / diam;
+  }
+  // [-90,90)범위에서 (전/후진 모터 회전방향 전환)
+  th_f_target = fold_half_pi_and_flip(th_f_target, v_f_target);
+  th_r_target = fold_half_pi_and_flip(th_r_target, v_r_target);
 
-  auto normalize_angle = [](double a) {
-    while (a > M_PI)  a -= 2.0 * M_PI;
-    while (a < -M_PI) a += 2.0 * M_PI;
-    return a;
-  };
+  // Get Joint State
+  double cur_th_f = 0.0;
+  double cur_th_r = 0.0;
+  double cur_v_f  = 0.0;
+  double cur_v_r  = 0.0;
 
-  double th_f_cmd = th_f;
-  double th_r_cmd = th_r;
-  double v_f_cmd = v_f;
-  double v_r_cmd = v_r;
-
-  if (have_steer_state_) {
-    double err_f = normalize_angle(th_f - cur_th_f_);
-    double err_r = normalize_angle(th_r - cur_th_r_);
-
-    const double max_step = max_steer_rate_ * control_period_;
-
-    auto smooth_cubic_step = [max_step](double err) {
-      if (max_step <= 0.0) return 0.0;
-
-      double sign = (err >= 0.0) ? 1.0 : -1.0;
-      double u = std::fabs(err) / max_step;
-
-      if (u >= 1.0) {
-        return sign * max_step;
-      } else {
-        double fu = -u*u*u + u*u + u;
-        return sign * max_step * fu;
-      }
-    };
-
-    // --- 추가: 현재 구동 속도 크기 (joint state에서 읽어온 값이라고 가정)
-    const double SPEED_STOP_THRESH = 0.01;  // rad/s 정도 (튜닝용)
-    bool large_err =
-      (std::fabs(err_f) > ANGLE_ERR_THRESH_) ||
-      (std::fabs(err_r) > ANGLE_ERR_THRESH_);
-    bool moving = 
-      (std::fabs(cur_v_f_) > SPEED_STOP_THRESH) ||
-      (std::fabs(cur_v_r_) > SPEED_STOP_THRESH);
-
-    if (large_err && moving) {
-      // 1) 크게 틀어져 있고 아직 움직이는 중이면
-      //    -> 조향도 멈추고, 속도도 0 (기존 방향으로만 감속)
-      th_f_cmd = cur_th_f_;
-      th_r_cmd = cur_th_r_;
-      v_f_cmd  = 0.0;
-      v_r_cmd  = 0.0;
-    } else {
-      // 2) 그 외에는 기존 로직대로 조향각 업데이트
-      double step_f = smooth_cubic_step(err_f);
-      double step_r = smooth_cubic_step(err_r);
-
-      th_f_cmd = cur_th_f_ + step_f;
-      th_r_cmd = cur_th_r_ + step_r;
-
-      if (large_err) {
-        // 아직 각도 오차가 크면 drive는 0 (정지 상태에서 조향만)
-        v_f_cmd = 0.0;
-        v_r_cmd = 0.0;
-      } else {
-        // 각도 오차가 충분히 작으면 drive 허용 (cos 스케일)
-        double scale_f = std::cos(err_f / ANGLE_ERR_THRESH_);
-        double scale_r = std::cos(err_r / ANGLE_ERR_THRESH_);
-        if (scale_f < 0.0) scale_f = 0.0;
-        if (scale_r < 0.0) scale_r = 0.0;
-
-        v_f_cmd *= scale_f;
-        v_r_cmd *= scale_r;
+  const std::string JOINTS_STEER_FRONT = "front_steer_joint";
+  const std::string JOINTS_STEER_REAR  = "rear_steer_joint";
+  const std::string JOINTS_DRIVE_FRONT = "front_drive_joint";
+  const std::string JOINTS_DRIVE_REAR  = "rear_drive_joint";
+  if (joint_state) {
+    for (size_t i = 0; i < joint_state->name.size(); ++i) {
+      const auto &name = joint_state->name[i];
+      if (name == JOINTS_STEER_FRONT) {
+        cur_th_f = joint_state->position[i];
+      } else if (name == JOINTS_STEER_REAR) {
+        cur_th_r = joint_state->position[i];
+      } else if (name == JOINTS_DRIVE_FRONT) {
+        cur_v_f = joint_state->velocity[i];
+      } else if (name == JOINTS_DRIVE_REAR) {
+        cur_v_r = joint_state->velocity[i];
       }
     }
   }
+  // 속도 그래프에 진동이 있어서 fillter하여 사용
+  double alpha = 0.9;
+  cur_v_f_filt_ = alpha * cur_v_f_filt_ + (1.0 - alpha) * cur_v_f;
+  cur_v_r_filt_ = alpha * cur_v_r_filt_ + (1.0 - alpha) * cur_v_r;
+  // [-90,90]
+  auto normalize_angle = [](double a) {
+    while (a >  M_PI) a -= 2.0 * M_PI;
+    while (a < -M_PI) a += 2.0 * M_PI;
+    return a;
+  };
+  // 각도 오차 & 상태 판단
+  double err_f = normalize_angle(th_f_target - cur_th_f);
+  double err_r = normalize_angle(th_r_target - cur_th_r);
 
+  // 모드 판단
+  const double ANGLE_TOL  = 0.5;  // rad 0.05
+  const double SPEED_TOL  = 0.1;  // rad/s empty: 0.02 test2: 0.05
+  const double T_STEER    = smooth_time_;   // 전체 정렬에 쓸 시간 (예: 1.0s)
+  const double DT         = control_period_;
+  bool is_misaligned = (std::fabs(err_f) > ANGLE_TOL) || (std::fabs(err_r) > ANGLE_TOL);
+  // bool is_robot_moving = (std::fabs(cur_v_f_filt_) > SPEED_TOL) || (std::fabs(cur_v_r_filt_) > SPEED_TOL);;
+
+  const int STOP_CONFIRM_CNT = 10; // 제어주기 100Hz면 0.1초 정도
+  // WAIT_STOP모드에서 STOP 판단:
+  if (std::abs(cur_v_f_filt_) < SPEED_TOL &&
+      std::abs(cur_v_r_filt_) < SPEED_TOL){
+      stop_confirm_counter_++;
+
+  } else {
+      stop_confirm_counter_ = 0;
+  }
+  bool really_stopped = (stop_confirm_counter_ >= STOP_CONFIRM_CNT);
+
+  switch (mode_) {
+  case SteerMode::DRIVE:
+    if (is_misaligned) {
+      // 조향이 틀어졌으면 → 먼저 멈추러 감
+      mode_ = SteerMode::WAIT_STOP;
+    }
+    break;
+
+  case SteerMode::WAIT_STOP:
+    // 충분히 멈췄으면 이제 조향만 맞추는 단계로
+    if (really_stopped) {
+      mode_ = SteerMode::STEER_ALIGN;
+    }
+    // (사용자가 cmd_vel을 0으로 돌려서 더 이상 misaligned 아니면 바로 DRIVE로 복귀해도 됨)
+    break;
+
+  case SteerMode::STEER_ALIGN:
+    // 각도가 tolerance 안으로 들어오면 다시 주행
+    if (!is_misaligned) {
+      mode_ = SteerMode::DRIVE;
+    }
+    break;
+  }
+
+  // cubic helper: 정지 상태에서만 사용
+  auto cubic_step_once = [&](double cur_th, double target_th, double dt, double T) {
+    double diff = normalize_angle(target_th - cur_th);
+    double a2 = 3.0 * diff / (T * T);
+    double a3 = -2.0 * diff / (T * T * T);
+
+    double t = dt;
+    double step = a2 * t * t + a3 * t * t * t;
+    return cur_th + step;
+  };
+  // DRIVE 모드에서 쓸 파라미터
+  const double Kp_drive            = 0.4;   // 조향 에러에 대한 비례 이득
+  const double MAX_STEER_RATE_DRIVE = 0.3;  // 주행 중 허용 조향 속도 [rad/s]
+  // ============= Stop – Steer – Go =============
+
+  double th_f_cmd = cur_th_f;
+  double th_r_cmd = cur_th_r;
+  double v_f_cmd  = 0.0;
+  double v_r_cmd  = 0.0;
+  switch (mode_) {
+    case SteerMode::DRIVE: {
+      // --- 작은 에러만 남아있는 상태에서 부드럽게 보정 ---
+      auto drive_steer_step = [&](double cur_th, double err) {
+        // 1) 기본적으로는 P 제어
+        double step = Kp_drive * err;   // rad
+
+        // 2) 한 주기당 최대 조향 변화량 제한
+        double max_step = MAX_STEER_RATE_DRIVE * DT;  // rad
+        if (step >  max_step) step =  max_step;
+        if (step < -max_step) step = -max_step;
+
+        return cur_th + step;
+      };
+
+      th_f_cmd = drive_steer_step(cur_th_f, err_f);
+      th_r_cmd = drive_steer_step(cur_th_r, err_r);
+
+      // 구동은 바로 목표 속도로
+      v_f_cmd  = v_f_target;
+      v_r_cmd  = v_r_target;
+
+      std::cout << "DRIVE" << std::endl;
+      break;
+    }
+
+    case SteerMode::WAIT_STOP:
+      v_f_cmd  = 0.0;
+      v_r_cmd  = 0.0;
+      th_f_cmd = cur_th_f;
+      th_r_cmd = cur_th_r;
+      std::cout << "STOP" << std::endl;
+      break;
+
+    case SteerMode::STEER_ALIGN:
+      v_f_cmd  = 0.0;
+      v_r_cmd  = 0.0;
+      th_f_cmd = cubic_step_once(cur_th_f, th_f_target, DT, T_STEER);
+      th_r_cmd = cubic_step_once(cur_th_r, th_r_target, DT, T_STEER);
+      std::cout << "STEER_ALIGN" << std::endl;
+      break;
+  }
+
+
+  // 3. JointTrajectory 메시지 생성 (position-only, velocity는 안 보냄)
   steer_traj = trajectory_msgs::msg::JointTrajectory{};
   steer_traj.joint_names = steer_joints;
   steer_traj.points.resize(1);
   auto &pt = steer_traj.points[0];
   pt.positions = {th_f_cmd, th_r_cmd};
-  pt.time_from_start = rclcpp::Duration::from_seconds(0.02);
+  pt.time_from_start = rclcpp::Duration::from_seconds(0.0);
 
   drive_cmd = std_msgs::msg::Float64MultiArray{};
   drive_cmd.data = {v_f_cmd, v_r_cmd};
 }
-//     double step_f = smooth_cubic_step(err_f);
-//     double step_r = smooth_cubic_step(err_r);
-
-//     th_f_cmd = cur_th_f_ + step_f;
-//     th_r_cmd = cur_th_r_ + step_r;
-
-//     if (std::fabs(err_f) > ANGLE_ERR_THRESH_ ||
-//         std::fabs(err_r) > ANGLE_ERR_THRESH_)
-//     {
-//       v_f_cmd = 0.0;
-//       v_r_cmd = 0.0;
-//     }
-//     else {
-//       // 3) 그 외에는 cos(error)로 스무딩
-//       double scale_f = std::cos(err_f/ANGLE_ERR_THRESH_);
-//       double scale_r = std::cos(err_r/ANGLE_ERR_THRESH_);
-//       if (scale_f < 0.0) scale_f = 0.0;
-//       if (scale_r < 0.0) scale_r = 0.0;
-
-//       v_f_cmd *= scale_f;
-//       v_r_cmd *= scale_r;
-//     }
-  
-
-//   steer_traj = trajectory_msgs::msg::JointTrajectory{};
-//   steer_traj.joint_names = steer_joints;      // size == 2
-//   steer_traj.points.resize(1);
-//   auto &pt = steer_traj.points[0];
-//   pt.positions = {th_f_cmd, th_r_cmd};                // pos only
-//   pt.time_from_start = rclcpp::Duration::from_seconds(0.02); // 20 ms (예시)
-
-//   drive_cmd = std_msgs::msg::Float64MultiArray{};
-//   drive_cmd.data = {v_f_cmd, v_r_cmd};
-// }
 
 void SteerDrive2WKinematics::setModuleSpec(
   double wheelDiameter, std::vector<std::string> steerJoints,

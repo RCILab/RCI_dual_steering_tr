@@ -5,8 +5,8 @@
                params="yaml_path">
 
     <xacro:include filename="$(find tr_dual_steering)/robots/xacros/dual_steering_robot_body.xacro"/>
-    <xacro:include filename="$(find tr_dual_steering)/robots/xacros/wheel/qd_wheel.xacro"/>
-    <xacro:include filename="$(find tr_dual_steering)/robots/xacros/wheel/caster_wheel.xacro"/>
+    <xacro:include filename="$(find tr_dual_steering)/robots/xacros/qd_wheel.xacro"/>
+    <xacro:include filename="$(find tr_dual_steering)/robots/xacros/caster_wheel.xacro"/>
 
     <xacro:property name="cfg_name" value="${xacro.load_yaml(yaml_path)}"/>
     <xacro:property name="p" value="${cfg_name['tr_dual_steering_node']['ros__parameters']}"/>
