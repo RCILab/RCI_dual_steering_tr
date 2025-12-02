@@ -118,7 +118,7 @@ def launch_setup(context, cfg, use_sim_time_arg):
         robot_state_publisher_node,
         spawn_entity_node,
         kinematics_node,
-        ekf_node,
+        # ekf_node,
         spawn_jsb_node,
         delay_velocity_controller_spawner,
         delay_trajectory_controller_spawner,

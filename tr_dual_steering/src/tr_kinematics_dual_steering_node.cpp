@@ -53,7 +53,7 @@ public:
 
     RCLCPP_INFO(this->get_logger(), "wheel_diameter: %.3f", wheel_diameter_);
 
-    topicPub_Odometry_ = this->create_publisher<nav_msgs::msg::Odometry>("/odom1", 10);
+    topicPub_Odometry_ = this->create_publisher<nav_msgs::msg::Odometry>("/odom", 10);
     pubSteer_ = this->create_publisher<trajectory_msgs::msg::JointTrajectory>(steer_traj_topic_, 10);
     pubDrive_ =this->create_publisher<std_msgs::msg::Float64MultiArray>(drive_cmd_topic_, 10);
 

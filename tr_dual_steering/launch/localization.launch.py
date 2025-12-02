@@ -119,7 +119,7 @@ def generate_launch_description():
         parameters=[{   
                 'use_sim_time': use_sim_time,
                 'file_name': pcd_map_path,   # 불러올 PCD 파일 경로
-                'tf_frame': 'pcd_map',       # 퍼블리시되는 포인트클라우드의 frame_id
+                # 'tf_frame': 'pcd_map',       # 퍼블리시되는 포인트클라우드의 frame_id
                 'publishing_period_ms': 200,
         }],
         remappings=[

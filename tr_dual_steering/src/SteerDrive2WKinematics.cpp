@@ -274,8 +274,7 @@ void SteerDrive2WKinematics::execInvKin(
       // 구동은 바로 목표 속도로
       v_f_cmd  = v_f_target;
       v_r_cmd  = v_r_target;
-
-      std::cout << "DRIVE" << std::endl;
+      // std::cout << "DRIVE" << std::endl;
       break;
     }
 
@@ -284,7 +283,7 @@ void SteerDrive2WKinematics::execInvKin(
       v_r_cmd  = 0.0;
       th_f_cmd = cur_th_f;
       th_r_cmd = cur_th_r;
-      std::cout << "STOP" << std::endl;
+      // std::cout << "STOP" << std::endl;
       break;
 
     case SteerMode::STEER_ALIGN:
@@ -292,7 +291,7 @@ void SteerDrive2WKinematics::execInvKin(
       v_r_cmd  = 0.0;
       th_f_cmd = cubic_step_once(cur_th_f, th_f_target, DT, T_STEER);
       th_r_cmd = cubic_step_once(cur_th_r, th_r_target, DT, T_STEER);
-      std::cout << "STEER_ALIGN" << std::endl;
+      // std::cout << "STEER_ALIGN" << std::endl;
       break;
   }
 
