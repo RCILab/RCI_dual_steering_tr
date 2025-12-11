@@ -17,7 +17,7 @@ def launch_setup(context, cfg, use_sim_time_arg):
     yaml_map = {'0': 'config/aligned.yaml','1': 'config/diagonal.yaml'}
 
     tr_dual_steering_share = get_package_share_directory('tr_dual_steering')
-    neo_simulation_share = get_package_share_directory('neo_simulation2')
+    # neo_simulation_share = get_package_share_directory('neo_simulation2')
     gazebo_ros_share = get_package_share_directory('gazebo_ros')
     
     rviz_cfg = os.path.join(tr_dual_steering_share, 'rviz', 'tr.rviz')
