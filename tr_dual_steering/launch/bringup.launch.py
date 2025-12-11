@@ -14,14 +14,14 @@ def generate_launch_description():
 
     map_name_arg = DeclareLaunchArgument(
         'map',
-        default_value='vlp16',
+        default_value='',
         description='Name of the map file in tr_real/maps directory (without .yaml extension)'
     )
     autostart_arg = DeclareLaunchArgument(
         'autostart', default_value='true', description='Automatically startup the stacks'
     )
 
-    map_name = LaunchConfiguration('map')
+    map_name = LaunchConfiguration('map',  default='test')
     autostart = LaunchConfiguration('autostart')
     namespace = LaunchConfiguration('namespace', default='')
     use_sim_time = LaunchConfiguration('use_sim_time', default='True')
@@ -33,13 +33,13 @@ def generate_launch_description():
     pcd_map_path = PathJoinSubstitution([
         tr_dual_steering_share, 
         'pcd', 
-        PythonExpression(["'", map_name, ".pcd'"]) # 'map_name' + '.pcd'
+        PythonExpression(["'", "test", ".pcd'"]) # 'map_name' + '.pcd'
     ])
     
     yaml_map_path = PathJoinSubstitution([
         tr_dual_steering_share, 
         'maps', 
-        PythonExpression(["'", map_name, ".yaml'"]) # 'map_name' + '.yaml'
+        PythonExpression(["'", "test", ".yaml'"]) # 'map_name' + '.yaml'
     ])
 
     return LaunchDescription([

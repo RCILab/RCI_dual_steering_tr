@@ -6,7 +6,7 @@
     <xacro:insert_block name="origin" />
     <axis xyz="0 0 1" />
     <dynamics damping="0.3" />
-    <!-- <limit effort="1000.0" lower="-1.57" upper="1.57" velocity="1.02"/> -->
+    <limit effort="1000.0" lower="-1.57" upper="1.57" velocity="1.02"/>
     <parent link="${parent}" />
     <child link="${name}_steer_link" />
    </joint>
@@ -39,7 +39,7 @@
     <origin xyz="0 0 -0.185" rpy="-1.57 0 0" />
     <axis xyz="0 0 1" />
     <dynamics damping="0.015" />
-    <!-- <limit effort="1000.0" lower="-3.14" upper="3.14" velocity="1.02"/> -->
+    <limit effort="1000.0" velocity="1.02"/>
     <parent link="${name}_steer_link" />
     <child link="${name}_drive_link" />
    </joint>
@@ -67,11 +67,15 @@
     </collision>
    </link>
 
+   <gazebo reference="${name}_steer_link">
+      <material>Gazebo/Red</material>  <!-- Gazebo/Red, Gazebo/Green 등 -->
+   </gazebo>
    <gazebo reference="${name}_drive_link">
       <mu1>1.5</mu1>   <!-- 진행 방향 -->
       <mu2>2.0</mu2>   <!-- 옆방향 (측방 미끄럼 줄이기) -->
       <slip1>0.01</slip1>
       <slip2>0.01</slip2>
+      <material>Gazebo/Red</material>  <!-- Gazebo/Red, Gazebo/Green 등 -->
    </gazebo>
 
   </xacro:macro>

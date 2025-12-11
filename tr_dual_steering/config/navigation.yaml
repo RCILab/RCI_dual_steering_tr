@@ -63,14 +63,13 @@ bt_navigator_navigate_to_pose_rclcpp_node:
 
 controller_server:
   ros__parameters:
-    odom_topic: /Odometry
     controller_frequency: 10.0
     min_x_velocity_threshold: 0.001
     progress_checker_plugin: "progress_checker"
     goal_checker_plugins: ["general_goal_checker"]
     controller_plugins: ["FollowPath"]
     use_sim_time: True
-    transform_tolerance: 0.3
+    transform_tolerance: 0.2
     # speed_filter_topic: "speed_limit"
     progress_checker:
       plugin: "nav2_controller::SimpleProgressChecker"
@@ -82,27 +81,30 @@ controller_server:
       yaw_goal_tolerance: 0.5
       stateful: True
     FollowPath:
-      plugin: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
-
+      plugin: "nav2_rotation_shim_controller::RotationShimController"
+      angular_dist_threshold: 0.52    #진입각
+      angular_disengage_threshold: 0.35 #종료각
+      rotate_to_goal_heading: true
+      rotate_to_heading_angular_vel: 0.5
+      primary_controller: "nav2_regulated_pure_pursuit_controller::RegulatedPurePursuitController"
       desired_linear_vel: 0.5        # 기본 직진 속도
       max_angular_vel: 1.5
 
+      use_velocity_scaled_lookahead_dist: True
       lookahead_dist: 1.0
-      min_lookahead_dist: 0.5
-      max_lookahead_dist: 1.5
-      use_velocity_scaled_lookahead_dist: false
+      min_lookahead_dist: 0.3
+      max_lookahead_dist: 1.2
 
-      # 속도 줄이는 옵션들 일단 끔
-      use_regulated_linear_velocity_scaling: false
+      use_regulated_linear_velocity_scaling: true
       use_cost_regulated_linear_velocity_scaling: false
-      use_rotate_to_heading: true
-      rotate_to_heading_min_angle: 0.785
-      rotate_to_heading_angular_vel: 1.0
+      approach_velocity_scaling_dist: 0.3
+      use_rotate_to_heading: false
+
 
 local_costmap:
   local_costmap:
     ros__parameters:
-      transform_tolerance: 0.3    # [수정] 오타 수정 (t 추가) & 넉넉하게 1.5로
+      transform_tolerance: 0.2 
       update_frequency: 5.0         # [권장] 시뮬레이션 부하 줄이기 위해 10 -> 5로 낮춤
       publish_frequency: 2.0
       global_frame: odom
@@ -115,51 +117,73 @@ local_costmap:
       height: 10
       resolution: 0.05              # [권장] 맵 해상도와 맞춤 (0.02는 너무 고해상도일 수 있음)
       robot_radius: 0.22
+      # plugins: ["static_layer", "inflation_layer","obstacle_layer"]
       plugins: ["obstacle_layer", "inflation_layer"]
-      inflation_layer:
-        plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 5.0
-        inflation_radius: 0.55
+
+      # static_layer:
+      #   plugin: "nav2_costmap_2d::StaticLayer"
+      #   map_topic: "/map"
+      #   subscribe_to_updates: true
+      #   lethal_cost_threshold: 100
+      #   enabled: True
+      #   map_subscribe_transient_local: False
       obstacle_layer:
         plugin: "nav2_costmap_2d::ObstacleLayer"
         enabled: True
-        observation_sources: velodyne
-        scan:
+        observation_sources: lidar
+        lidar:
           topic: /velodyne_points
           max_obstacle_height: 2.0
-          min_obstacle_height: -1.0  # [추가] 바닥 노이즈 제거용 (필수)
+          min_obstacle_height: 0.2  # [추가] 바닥 노이즈 제거용 (필수)
           clearing: True
           marking: True
           data_type: "PointCloud2"  # [수정] LaserScan -> PointCloud2 (핵심!)
+      inflation_layer:
+        plugin: "nav2_costmap_2d::InflationLayer"
+        cost_scaling_factor: 4.0
+        inflation_radius: 1.0
       always_send_full_costmap: True
 
 global_costmap:
   global_costmap:
     ros__parameters:
-      transform_tolerance: 0.3      # [수정] 오타 수정
-      update_frequency: 0.5
-      publish_frequency: 0.5
+      transform_tolerance: 0.2
+      update_frequency: 1.0
+      publish_frequency: 1.0
       global_frame: map
       robot_base_frame: base_footprint
       footprint_padding: 0.0
-      footprint: "[ [0.45,0.4],[-0.45,0.4],[-0.45,-0.4],[0.45,-0.4] ]"
-      use_sim_time: True            # [수정] True
-      resolution: 0.05              # [권장] 0.02 -> 0.05
+      footprint: "[ [0.7,0.5],[-0.7,0.5],[-0.7,-0.5],[0.7,-0.5] ]"
+      use_sim_time: True
+      resolution: 0.05
       track_unknown_space: true
-      plugins: ["static_layer", "inflation_layer"]
+      plugins: ["static_layer", "obstacle_layer", "inflation_layer"]
+      # plugins: ["static_layer", "obstacle_layer"]
+
       static_layer:
         plugin: "nav2_costmap_2d::StaticLayer"
         map_subscribe_transient_local: True
+      obstacle_layer:
+        plugin: "nav2_costmap_2d::ObstacleLayer"
+        enabled: True
+        observation_sources: lidar
+        lidar:
+          topic: /velodyne_points
+          max_obstacle_height: 2.0
+          min_obstacle_height: 0.2  # [추가] 바닥 노이즈 제거용 (필수)
+          clearing: True
+          marking: True
+          data_type: "PointCloud2"  # [수정] LaserScan -> PointCloud2 (핵심!)
       inflation_layer:
         plugin: "nav2_costmap_2d::InflationLayer"
-        cost_scaling_factor: 5.0
-        inflation_radius: 0.55
+        cost_scaling_factor: 4.0
+        inflation_radius: 1.0
       always_send_full_costmap: True
 
 map_server:
   ros__parameters:
     use_sim_time: True
-    yaml_filename: "vlp16.yaml"
+    yaml_filename: "/home/home/RCI_dual_steering_ws/src/tr_dual_steering/maps/test.yaml"
 
 map_saver:
   ros__parameters:
@@ -176,7 +200,7 @@ planner_server:
     GridBased:
       plugin: "nav2_navfn_planner/NavfnPlanner"
       tolerance: 0.5
-      use_astar: false
+      use_astar: true
       allow_unknown: true
 
 behavior_server:
@@ -191,13 +215,13 @@ behavior_server:
       plugin: "nav2_behaviors/BackUp"
     wait:
       plugin: "nav2_behaviors/Wait"
-    global_frame: map
+    global_frame: odom
     robot_base_frame: base_footprint
     transform_timeout: 0.1
     use_sim_time: True
     simulate_ahead_time: 2.0
-    max_rotational_vel: 0.5
-    min_rotational_vel: 0.3
+    max_rotational_vel: 0.7
+    min_rotational_vel: 0.5
     rotational_acc_lim: 0.8
 
 waypoint_follower:

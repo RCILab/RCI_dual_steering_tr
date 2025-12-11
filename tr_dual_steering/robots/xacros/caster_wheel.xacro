@@ -74,10 +74,12 @@
       <gazebo reference="${name}_link">
          <mu1>${mu1}</mu1><mu2>${mu2}</mu2>
          <slip1>${slip1}</slip1><slip2>${slip2}</slip2>
+         <material>Gazebo/Red</material>  <!-- Gazebo/Red, Gazebo/Green 등 -->
       </gazebo>
       <gazebo reference="${name}_mount_link">
          <mu1>${mu1}</mu1><mu2>${mu2}</mu2>
          <slip1>${slip1}</slip1><slip2>${slip2}</slip2>
+         <material>Gazebo/Red</material>  <!-- Gazebo/Red, Gazebo/Green 등 -->
       </gazebo>
    </xacro:if>
   </xacro:macro>

@@ -1,0 +1,37 @@
+# pcd saver
+ros2 service call /map_save std_srvs/srv/Trigger "{}"
+
+ros2 run nav2_map_server map_saver_cli -f <YOUR_MAP_NAME>
+
+ros2 run fast_lio publish_initial_pose.py -0.013 0.0 0.0 0.0 0.0 0.0
+
+ros2 run tf2_tools view_frames
+
+
+colcon build --packages-select velodyne_description velodyne_gazebo_plugins livox_ros_driver2 neo_simulation2 icp_relocalization
+colcon build --packages-select  livox_ros_driver2 neo_simulation2 
+
+souce install/setup.bash
+
+colcon build --packages-select velodyne_simulator fast_lio tr_dual_steering
+colcon build --packages-select  fast_lio tr_dual_steering icp_relocalization
+souce install/setup.bash
+
+xacro $(ros2 pkg prefix tr_dual_steering)/share/tr_dual_steering/robots/dual_steering_robot.urdf.xacro yaml_path:=$(ros2 pkg prefix tr_dual_steering)/share/tr_dual_steering/config/aligned.yaml > dual_steering_robot.urdf
+
+수정 필요한 사항
+Kinematics를 navigation에 맞게 업데이트
+neobotix MPC plugin을 활용해서 홀로노믹 제어
+laserMapping에서 발행하는 /cloud_registered가 use_sim_time을 따르도록 현재는 LiDAR 데이터 time을 따라서 싱크가 뒤쳐져 있음
+
+
+ros2 topic echo /Odometry --once
+ros2 topic echo /cloud_registered/header --once
+ros2 topic echo /path/header --once
+
+ros2 topic echo /clock --once
+ros2 topic echo /map_to_odom --field header.stamp --once
+ros2 topic echo /Odometry --field header.stamp --once
+ros2 topic echo /velodyne_points --field header.stamp --once
+ros2 topic echo /imu/data --field header.stamp --once
+

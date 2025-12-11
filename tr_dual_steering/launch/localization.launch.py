@@ -11,14 +11,14 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
     declare_pcd_map = DeclareLaunchArgument('pcd_map', 
-                                            default_value= '/home/home/RCI_dual_steering_ws/src/tr_dual_steering/pcd/vlp16.pcd',
+                                            default_value= '/home/home/RCI_dual_steering_ws/src/tr_dual_steering/pcd/test.pcd',
                                             description='Full path to map(pcd)file')
     declare_yaml_map = DeclareLaunchArgument('yaml_map', 
-                                            default_value= '/home/home/RCI_dual_steering_ws/src/tr_dual_steering/maps/vlp16.yaml',
+                                            default_value= '/home/home/RCI_dual_steering_ws/src/tr_dual_steering/maps/test.yaml',
                                             description='Full path to map(yaml)file')
     declare_use_sim_time = DeclareLaunchArgument('use_sim_time', default_value='true')
     declare_params = DeclareLaunchArgument('params_file', 
-                                           default_value= '/home/home/RCI_dual_steering_ws/src/tr_dual_steering/config/velodyne16_localization.yaml',
+                                           default_value= '/home/home/RCI_dual_steering_ws/src/tr_dual_steering/config/navigation.yaml',
                                            description= 'Full path to navigation yaml file')
     declare_namespace = DeclareLaunchArgument('namespace', default_value='')
     declare_autostart = DeclareLaunchArgument('autostart', default_value='true') # [수정] 추가됨
@@ -170,12 +170,12 @@ def generate_launch_description():
 
 
     ld.add_action(map_server_node)
-    ld.add_action(fastlio_node)
-    ld.add_action(global_localization_node)
-    ld.add_action(transform_fusion_node)
-    ld.add_action(map_publisher_node)
-    ld.add_action(initial_pose_node)
-    ld.add_action(rviz_node)
+    # ld.add_action(fastlio_node)
+    # ld.add_action(global_localization_node)
+    # ld.add_action(transform_fusion_node)
+    # ld.add_action(map_publisher_node)
+    # ld.add_action(initial_pose_node)
+    # ld.add_action(rviz_node)
     ld.add_action(lifecycle_manager_node)
 
     return ld
