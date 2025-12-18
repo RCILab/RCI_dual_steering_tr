@@ -239,6 +239,7 @@ Before running Nav2, you must convert the 3D PCD map into a 2D occupancy grid (`
 After configuring the map and paths:
 
 ```bash
+ros2 launch fast_lio relocalization.launch.py
 ros2 launch tr_dual_steering bringup.launch.py
 ```
 
